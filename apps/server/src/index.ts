@@ -1,7 +1,7 @@
-import { readServices, writeServices } from './server/storage'
-import { stripCredentials } from './server/types'
-import type { ServiceConfig, AuthConfig } from './server/types'
-import { proxyContacts } from './server/proxy'
+import { readServices, writeServices } from './storage'
+import { stripCredentials } from '@onecrm/shared'
+import type { ServiceConfig, AuthConfig } from '@onecrm/shared'
+import { proxyContacts } from './proxy'
 
 const PORT = 3001
 

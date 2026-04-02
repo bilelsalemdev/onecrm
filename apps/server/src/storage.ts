@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
-import type { ServiceConfig } from './types'
+import type { ServiceConfig } from '@onecrm/shared'
 
 const DATA_DIR = './data'
 const DATA_FILE = `${DATA_DIR}/services.json`

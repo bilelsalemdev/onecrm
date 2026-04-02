@@ -1,4 +1,4 @@
-import type { ServiceConfig } from './types'
+import type { ServiceConfig } from '@onecrm/shared'
 
 export async function proxyContacts(service: ServiceConfig): Promise<unknown> {
   const headers: Record<string, string> = {
