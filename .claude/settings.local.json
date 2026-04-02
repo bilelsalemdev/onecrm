@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun create:*)",
+      "Read(//tmp/**)",
+      "Bash(rm -rf onecrm-scaffold)",
+      "Bash(cp:*)",
+      "Bash(bun install:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(bun add:*)",
+      "Bash(bunx:*)"
+    ]
+  }
+}
