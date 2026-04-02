@@ -10,10 +10,20 @@ import type { Service, Contact } from '@/services/types'
 export function Dashboard() {
   const [services, setServices] = useState<Service[]>([])
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getServices().then(setServices)
-    getAllContacts().then(setContacts)
+    async function load() {
+      setLoading(true)
+      try {
+        const [s, c] = await Promise.all([getServices(), getAllContacts()])
+        setServices(s)
+        setContacts(c)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
   }, [])
 
   const totalContacts = contacts.length
@@ -21,6 +31,10 @@ export function Dashboard() {
     (c) => c.date === new Date().toISOString().split('T')[0]
   ).length
   const newContacts = contacts.filter((c) => c.status === 'new').length
+
+  if (loading) {
+    return <div className="p-8 text-center text-muted-foreground">Loading...</div>
+  }
 
   return (
     <div className="space-y-6">
@@ -32,23 +46,27 @@ export function Dashboard() {
         <StatsCard title="New (Pending)" value={newContacts} icon={Clock} />
       </div>
 
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Services</h3>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((service) => (
-            <ServiceSummaryCard key={service.id} service={service} />
-          ))}
+      {services.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-lg font-semibold">Services</h3>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {services.map((service) => (
+              <ServiceSummaryCard key={service.id} service={service} />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Contacts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RecentContacts contacts={contacts} />
-        </CardContent>
-      </Card>
+      {contacts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Contacts</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <RecentContacts contacts={contacts} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

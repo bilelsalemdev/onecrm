@@ -1,14 +1,10 @@
 import { Link } from 'react-router'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Service } from '@/services/types'
-import { Globe, Sparkles, TrendingUp, Award, Building } from 'lucide-react'
+import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Globe,
-  Sparkles,
-  TrendingUp,
-  Award,
-  Building,
+  Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield,
 }
 
 export function ServiceSummaryCard({ service }: { service: Service }) {
@@ -24,10 +20,6 @@ export function ServiceSummaryCard({ service }: { service: Service }) {
           <div className="flex-1">
             <p className="text-sm font-medium">{service.name}</p>
             <p className="text-xs text-muted-foreground">{service.description}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-lg font-bold">{service.contactCount}</p>
-            <p className="text-xs text-muted-foreground">contacts</p>
           </div>
         </CardContent>
       </Card>
