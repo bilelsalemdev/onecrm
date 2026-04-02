@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import type { AuthConfig, AuthType, Service, ServiceFormData } from "@/services/types"
+import type { AuthConfig, AuthType, Service, ServiceFormData } from "@onecrm/shared"
 import {
   Dialog,
   DialogContent,

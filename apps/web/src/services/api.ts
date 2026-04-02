@@ -1,4 +1,4 @@
-import type { Service, Contact, ServiceFormData } from './types'
+import type { Service, Contact, ServiceFormData } from '@onecrm/shared'
 
 const API = '/api'
 

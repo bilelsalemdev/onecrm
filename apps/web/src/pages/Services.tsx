@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ServiceCard } from '@/components/services/ServiceCard'
 import { ServiceFormDialog } from '@/components/services/ServiceFormDialog'
 import { getServices, createService, updateService, deleteService } from '@/services/api'
-import type { Service, ServiceFormData } from '@/services/types'
+import type { Service, ServiceFormData } from '@onecrm/shared'
 
 export function Services() {
   const [services, setServices] = useState<Service[]>([])

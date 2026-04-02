@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { Card, CardContent } from '@/components/ui/card'
-import type { Service } from '@/services/types'
+import type { Service } from '@onecrm/shared'
 import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {

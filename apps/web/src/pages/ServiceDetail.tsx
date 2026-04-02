@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import { getService, getContacts } from '@/services/api'
 import { ContactsTable } from '@/components/services/ContactsTable'
-import type { Service, Contact } from '@/services/types'
+import type { Service, Contact } from '@onecrm/shared'
 import { Globe, Sparkles, TrendingUp, Award, Building } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {

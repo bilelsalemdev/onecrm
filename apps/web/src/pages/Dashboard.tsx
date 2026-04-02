@@ -5,7 +5,7 @@ import { StatsCard } from '@/components/dashboard/StatsCard'
 import { ServiceSummaryCard } from '@/components/dashboard/ServiceSummaryCard'
 import { RecentContacts } from '@/components/dashboard/RecentContacts'
 import { getServices, getAllContacts } from '@/services/api'
-import type { Service, Contact } from '@/services/types'
+import type { Service, Contact } from '@onecrm/shared'
 
 export function Dashboard() {
   const [services, setServices] = useState<Service[]>([])

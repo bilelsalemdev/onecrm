@@ -7,7 +7,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import type { Contact } from '@/services/types'
+import type { Contact } from '@onecrm/shared'
 
 const statusVariant: Record<Contact['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
   new: 'default',

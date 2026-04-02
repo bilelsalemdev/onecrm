@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ArrowUpDown } from 'lucide-react'
-import type { Contact } from '@/services/types'
+import type { Contact } from '@onecrm/shared'
 
 const statusVariant: Record<Contact['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
   new: 'default',
