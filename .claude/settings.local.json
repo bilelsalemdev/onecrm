@@ -15,7 +15,10 @@
       "Bash(./node_modules/.bin/tsc --noEmit 2>&1)",
       "Bash(node_modules/.bin/tsc --noEmit 2>&1)",
       "Bash(/mnt/c/Users/bilel/Desktop/neov/onecrm/node_modules/.bin/tsc.bunx --noEmit 2>&1)",
-      "Bash(bun run:*)"
+      "Bash(bun run:*)",
+      "Bash(git -C /mnt/c/Users/bilel/Desktop/neov/onecrm log --oneline -5)",
+      "Bash(git -C /mnt/c/Users/bilel/Desktop/neov/onecrm status)",
+      "Bash(git rm:*)"
     ]
   }
 }
