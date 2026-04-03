@@ -5,41 +5,50 @@ const services = [
     name: 'MD3W',
     description: 'Web development platform',
     icon: 'Globe',
-    endpoint: 'https://md3w.com/api/contacts',
-    auth: { type: 'api-key' as const, apiKey: 'sk-md3w-demo-key', headerName: 'X-API-Key' },
+    endpoint: `${API}/mock/contacts`,
+    ordersEndpoint: `${API}/mock/orders`,
+    auth: { type: 'none' as const },
   },
   {
     name: 'Aalii',
     description: 'Digital solutions service',
     icon: 'Sparkles',
-    endpoint: 'https://aalii.app/api/contacts',
-    auth: { type: 'bearer' as const, token: 'aalii-demo-token-2026' },
+    endpoint: `${API}/mock/contacts`,
+    ordersEndpoint: `${API}/mock/orders`,
+    auth: { type: 'none' as const },
   },
   {
     name: 'InvFunds',
     description: 'Investment funds management',
     icon: 'TrendingUp',
-    endpoint: 'https://invfunds.io/api/v1/leads',
-    auth: { type: 'basic' as const, username: 'admin', password: 'invfunds-pass' },
+    endpoint: `${API}/mock/contacts`,
+    ordersEndpoint: `${API}/mock/orders`,
+    auth: { type: 'none' as const },
   },
   {
     name: 'WalaPoints',
     description: 'Loyalty points system',
     icon: 'Award',
-    endpoint: 'https://walapoints.com/api/contacts',
-    auth: { type: 'api-key' as const, apiKey: 'wp-key-demo-123', headerName: 'Authorization' },
+    endpoint: `${API}/mock/contacts`,
+    auth: { type: 'none' as const },
   },
   {
     name: 'Masejed',
     description: 'Mosque management platform',
     icon: 'Building',
-    endpoint: 'https://masejed.org/api/inquiries',
+    endpoint: `${API}/mock/contacts`,
     auth: { type: 'none' as const },
   },
 ]
 
+// Review statuses to distribute across kanban columns
+const reviewStatuses = ['to-review', 'under-review', 'completed'] as const
+const assignees = ['bilel@neov.dz', 'ahmed@neov.dz', 'sara@neov.dz']
+
 async function seed() {
   console.log('Seeding services...\n')
+
+  const serviceIds: string[] = []
 
   for (const service of services) {
     const res = await fetch(`${API}/services`, {
@@ -49,11 +58,60 @@ async function seed() {
     })
 
     if (res.ok) {
-      const data = await res.json()
-      console.log(`  ✓ ${(data as { name: string }).name}`)
+      const data = await res.json() as { id: string; name: string }
+      console.log(`  ✓ ${data.name}`)
+      serviceIds.push(data.id)
     } else {
-      const err = await res.json()
-      console.log(`  ✗ ${service.name}: ${(err as { error: string }).error}`)
+      const err = await res.json() as { error: string }
+      console.log(`  ✗ ${service.name}: ${err.error}`)
+      // Still track the ID for review seeding
+      serviceIds.push(service.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'))
+    }
+  }
+
+  console.log('\nSeeding review statuses...\n')
+
+  for (const serviceId of serviceIds) {
+    // Seed contact reviews — spread across columns
+    for (let i = 1; i <= 12; i++) {
+      const status = reviewStatuses[i % 3]
+      const body: Record<string, string> = { reviewStatus: status }
+
+      // Assign some items
+      if (i % 4 === 0) {
+        body.assignedTo = assignees[i % assignees.length]
+      }
+
+      const res = await fetch(`${API}/services/${serviceId}/reviews/contacts/${i}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      if (res.ok) {
+        const assigned = body.assignedTo ? ` → ${body.assignedTo}` : ''
+        console.log(`  ✓ ${serviceId}/contact/${i}: ${status}${assigned}`)
+      }
+    }
+
+    // Seed order reviews for services that have orders endpoint
+    const service = services.find(s => s.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === serviceId)
+    if (service && 'ordersEndpoint' in service && service.ordersEndpoint) {
+      for (let i = 1; i <= 8; i++) {
+        const status = reviewStatuses[(i + 1) % 3]
+        const body: Record<string, string> = { reviewStatus: status }
+
+        if (i % 3 === 0) {
+          body.assignedTo = assignees[i % assignees.length]
+        }
+
+        await fetch(`${API}/services/${serviceId}/reviews/orders/${i}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+      }
+      console.log(`  ✓ ${serviceId}/orders: 8 reviews seeded`)
     }
   }
 

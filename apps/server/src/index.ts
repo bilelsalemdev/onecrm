@@ -39,6 +39,49 @@ Bun.serve({
     }
 
     try {
+      // GET /api/mock/contacts — returns fake contacts for demo/seeding
+      if (urlPath === '/api/mock/contacts' && method === 'GET') {
+        const names = ['Ahmed Benali', 'Fatima Khoury', 'Omar Mansouri', 'Yasmine Haddad', 'Karim Zahra', 'Nour Dridi', 'Bilel Bouazizi', 'Sara Jaziri', 'Mehdi Trabelsi', 'Amina Sfar', 'Rami Bouzid', 'Leila Cherif']
+        const messages = ['Interested in your services', 'Can you provide a demo?', 'Need help with integration', 'Looking for enterprise pricing', 'Partnership opportunity', 'Question about API access', 'Want to upgrade my plan', 'Having issues with my account']
+        const contacts = names.map((name, i) => {
+          const [first, last] = name.split(' ')
+          const daysAgo = Math.floor(Math.random() * 60)
+          const d = new Date(); d.setDate(d.getDate() - daysAgo)
+          return {
+            id: String(i + 1),
+            name,
+            email: `${first.toLowerCase()}.${last.toLowerCase()}@gmail.com`,
+            phone: `+213 ${String(Math.floor(Math.random() * 900000000 + 100000000))}`,
+            message: messages[i % messages.length],
+            date: d.toISOString().split('T')[0],
+            status: ['new', 'contacted', 'converted', 'archived'][i % 4],
+          }
+        })
+        return json(contacts)
+      }
+
+      // GET /api/mock/orders — returns fake orders for demo/seeding
+      if (urlPath === '/api/mock/orders' && method === 'GET') {
+        const customers = ['Ahmed Benali', 'Fatima Khoury', 'Omar Mansouri', 'Yasmine Haddad', 'Karim Zahra', 'Nour Dridi', 'Bilel Bouazizi', 'Sara Jaziri']
+        const products = ['Basic Plan', 'Pro Plan', 'Enterprise License', 'Consulting Package', 'API Access', 'Premium Support', 'Custom Integration', 'Training Session']
+        const orders = customers.map((name, i) => {
+          const [first, last] = name.split(' ')
+          const daysAgo = Math.floor(Math.random() * 60)
+          const d = new Date(); d.setDate(d.getDate() - daysAgo)
+          return {
+            id: String(i + 1),
+            customerName: name,
+            customerEmail: `${first.toLowerCase()}.${last.toLowerCase()}@company.com`,
+            product: products[i % products.length],
+            amount: Math.floor(Math.random() * 5000 + 100),
+            currency: 'DZD',
+            date: d.toISOString().split('T')[0],
+            status: ['pending', 'processing', 'completed', 'cancelled'][i % 4],
+          }
+        })
+        return json(orders)
+      }
+
       // GET /api/logos/:filename — serve uploaded logos
       const logoMatch = urlPath.match(/^\/api\/logos\/(.+)$/)
       if (logoMatch && method === 'GET') {
