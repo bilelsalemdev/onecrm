@@ -18,7 +18,7 @@ const statusVariant: Record<Contact['status'], 'default' | 'secondary' | 'destru
 
 export function RecentContacts({ contacts }: { contacts: Contact[] }) {
   return (
-    <Table>
+    <Table className="[&_tr:nth-child(even)]:bg-muted/30">
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
@@ -32,9 +32,9 @@ export function RecentContacts({ contacts }: { contacts: Contact[] }) {
         {contacts.slice(0, 10).map((contact) => (
           <TableRow key={contact.id}>
             <TableCell className="font-medium">{contact.name}</TableCell>
-            <TableCell>{contact.email}</TableCell>
-            <TableCell>{contact.serviceId}</TableCell>
-            <TableCell>{contact.date}</TableCell>
+            <TableCell className="text-muted-foreground">{contact.email}</TableCell>
+            <TableCell className="text-muted-foreground">{contact.serviceId}</TableCell>
+            <TableCell className="text-muted-foreground">{contact.date}</TableCell>
             <TableCell>
               <Badge variant={statusVariant[contact.status]}>
                 {contact.status}

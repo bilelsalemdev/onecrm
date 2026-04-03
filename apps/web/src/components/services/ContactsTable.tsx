@@ -20,7 +20,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown, Search } from 'lucide-react'
 import type { Contact } from '@onecrm/shared'
 
 const statusVariant: Record<Contact['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -91,15 +91,18 @@ export function ContactsTable({ contacts }: { contacts: Contact[] }) {
 
   return (
     <div className="space-y-4">
-      <Input
-        placeholder="Search contacts..."
-        value={globalFilter}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-        className="max-w-sm"
-      />
+      <div className="relative max-w-sm">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
+        <Input
+          placeholder="Search contacts..."
+          value={globalFilter}
+          onChange={(e) => setGlobalFilter(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
       <div className="rounded-md border">
-        <Table>
+        <Table className="[&_tr:nth-child(even)]:bg-muted/30">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -126,8 +129,11 @@ export function ContactsTable({ contacts }: { contacts: Contact[] }) {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No contacts found.
+                <TableCell colSpan={columns.length} className="h-32 text-center">
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Search className="h-8 w-8 text-muted-foreground/30" />
+                    <p className="text-sm">No contacts found.</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}

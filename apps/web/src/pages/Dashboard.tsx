@@ -42,23 +42,23 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="animate-fade-in">
         <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
-        <p className="text-muted-foreground mt-1">Overview of all your connected services.</p>
+        <p className="text-muted-foreground/70 mt-1">Overview of all your connected services and recent activity.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div style={{ animationDelay: '0ms' }}><StatsCard title="Total Contacts" value={totalContacts} icon={Users} /></div>
-        <div style={{ animationDelay: '75ms' }}><StatsCard title="Today" value={todayContacts} icon={CalendarDays} /></div>
-        <div style={{ animationDelay: '150ms' }}><StatsCard title="New (Pending)" value={newContacts} icon={Clock} /></div>
+        <div style={{ animationDelay: '50ms' }}><StatsCard title="Total Contacts" value={totalContacts} icon={Users} /></div>
+        <div style={{ animationDelay: '125ms' }}><StatsCard title="Today" value={todayContacts} icon={CalendarDays} /></div>
+        <div style={{ animationDelay: '200ms' }}><StatsCard title="New (Pending)" value={newContacts} icon={Clock} /></div>
       </div>
 
       {services.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-fade-in" style={{ animationDelay: '150ms' }}>
           <h3 className="text-lg font-semibold">Services</h3>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {services.map((service, i) => (
-              <div key={service.id} style={{ animationDelay: `${200 + i * 75}ms` }} className="animate-fade-in-up">
+              <div key={service.id} style={{ animationDelay: `${250 + i * 60}ms` }} className="animate-fade-in-up">
                 <ServiceSummaryCard service={service} />
               </div>
             ))}
@@ -67,7 +67,8 @@ export function Dashboard() {
       )}
 
       {contacts.length > 0 && (
-        <Card className="animate-fade-in-up" style={{ animationDelay: '400ms' }}>
+        <Card className="animate-fade-in-up overflow-hidden relative" style={{ animationDelay: '400ms' }}>
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
           <CardHeader>
             <CardTitle>Recent Contacts</CardTitle>
           </CardHeader>

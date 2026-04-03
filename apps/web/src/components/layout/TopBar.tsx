@@ -20,7 +20,7 @@ export function TopBar() {
   }
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6 sticky top-0 z-10">
+    <header className="flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-md px-4 md:px-6 sticky top-0 z-10 shadow-[0_1px_3px_0_rgba(0,0,0,0.04)]">
       <Sheet>
         <SheetTrigger
           render={<Button variant="ghost" size="icon" className="md:hidden" />}
@@ -34,11 +34,11 @@ export function TopBar() {
       <nav className="flex items-center gap-1.5 text-sm">
         {breadcrumbs().map((crumb, i, arr) => (
           <span key={crumb.to} className="flex items-center gap-1.5">
-            {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/50" />}
+            {i > 0 && <ChevronRight className="h-3 w-3 text-muted-foreground/40" />}
             {i === arr.length - 1 ? (
               <span className="text-foreground font-medium">{crumb.label}</span>
             ) : (
-              <Link to={crumb.to} className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link to={crumb.to} className="text-muted-foreground hover:text-foreground transition-colors duration-150">
                 {crumb.label}
               </Link>
             )}

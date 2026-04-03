@@ -21,21 +21,22 @@ export function ServiceCard({ service, onEdit, onDelete }: ServiceCardProps) {
 
   return (
     <Card
-      className="animate-fade-in-up group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30"
+      className="animate-fade-in-up group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/20 overflow-hidden relative"
       onClick={() => navigate(`/services/${service.id}`)}
     >
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
       <CardHeader className="flex flex-row items-start gap-4 pb-3">
         <div className="flex items-start gap-4 flex-1 min-w-0">
           {service.logo ? (
-            <img src={service.logo} alt={service.name} className="h-14 w-14 rounded-xl object-cover shadow-sm" />
+            <img src={service.logo} alt={service.name} className="h-14 w-14 rounded-xl object-cover shadow-sm ring-1 ring-border" />
           ) : (
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10">
               <Icon className="h-7 w-7 text-primary" />
             </div>
           )}
           <div className="min-w-0">
             <CardTitle className="text-base font-semibold">{service.name}</CardTitle>
-            <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{service.description}</p>
+            <p className="text-sm text-muted-foreground/70 mt-0.5 line-clamp-2">{service.description}</p>
           </div>
         </div>
         <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -48,8 +49,8 @@ export function ServiceCard({ service, onEdit, onDelete }: ServiceCardProps) {
         </div>
       </CardHeader>
       <CardContent className="pt-0 flex items-center gap-2">
-        <Badge variant="secondary" className="text-xs">{service.authType}</Badge>
-        <span className="text-xs text-muted-foreground truncate flex items-center gap-1">
+        <Badge variant="secondary" className="text-xs font-medium">{service.authType}</Badge>
+        <span className="text-xs text-muted-foreground/50 truncate flex items-center gap-1">
           <ExternalLink className="h-3 w-3" />
           {service.endpoint.replace(/^https?:\/\//, '').split('/')[0]}
         </span>
