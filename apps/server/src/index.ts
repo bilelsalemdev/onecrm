@@ -1,7 +1,9 @@
 import { readServices, writeServices } from './storage'
 import { stripCredentials } from '@onecrm/shared'
-import type { ServiceConfig, AuthConfig } from '@onecrm/shared'
+import type { ServiceConfig, AuthConfig, ReviewStatus } from '@onecrm/shared'
 import { proxyContacts, proxyOrders, fetchSampleFields } from './proxy'
+import { getReviews, setReview } from './reviews'
+import { sendAssignmentEmail } from './email'
 import { mkdir as mkdirNode } from 'fs/promises'
 import { existsSync } from 'fs'
 
@@ -30,7 +32,7 @@ Bun.serve({
       return new Response(null, {
         headers: {
           'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
           'Access-Control-Allow-Headers': 'Content-Type',
         },
       })
@@ -144,8 +146,23 @@ Bun.serve({
         const service = services.find((s) => s.id === id)
         if (!service) return json({ error: 'Service not found' }, 404)
 
-        const orders = await proxyOrders(service)
-        return json(orders)
+        const orders = await proxyOrders(service) as Record<string, unknown>[]
+        const reviews = await getReviews(id, 'orders')
+
+        const enriched = orders.map((o, i) => {
+          const itemId = String((o as Record<string, unknown>).id ?? i)
+          const meta = reviews[itemId]
+          return {
+            ...o,
+            serviceId: id,
+            reviewStatus: meta?.reviewStatus ?? 'to-review',
+            assignedTo: meta?.assignedTo,
+            assignedAt: meta?.assignedAt,
+            note: meta?.note,
+          }
+        })
+
+        return json(enriched)
       }
 
       // GET /api/services/:id/contacts
@@ -155,8 +172,24 @@ Bun.serve({
         const service = services.find((s) => s.id === id)
         if (!service) return json({ error: 'Service not found' }, 404)
 
-        const contacts = await proxyContacts(service)
-        return json(contacts)
+        const contacts = await proxyContacts(service) as Record<string, unknown>[]
+        const reviews = await getReviews(id, 'contacts')
+
+        // Merge review metadata into contacts
+        const enriched = contacts.map((c, i) => {
+          const itemId = String((c as Record<string, unknown>).id ?? i)
+          const meta = reviews[itemId]
+          return {
+            ...c,
+            serviceId: id,
+            reviewStatus: meta?.reviewStatus ?? 'to-review',
+            assignedTo: meta?.assignedTo,
+            assignedAt: meta?.assignedAt,
+            note: meta?.note,
+          }
+        })
+
+        return json(enriched)
       }
 
       // GET /api/services/:id
@@ -210,6 +243,31 @@ Bun.serve({
         services.splice(index, 1)
         await writeServices(services)
         return json({ ok: true })
+      }
+
+      // PATCH /api/services/:id/reviews/:type/:itemId — update review status
+      const reviewMatch = urlPath.match(/^\/api\/services\/([^/]+)\/reviews\/(contacts|orders)\/([^/]+)$/)
+      if (reviewMatch && method === 'PATCH') {
+        const [, serviceId, type, itemId] = reviewMatch
+        const body = await req.json() as { reviewStatus?: ReviewStatus; assignedTo?: string; note?: string }
+
+        const meta: Record<string, unknown> = {}
+        if (body.reviewStatus) meta.reviewStatus = body.reviewStatus
+        if (body.note !== undefined) meta.note = body.note
+
+        if (body.assignedTo) {
+          meta.assignedTo = body.assignedTo
+          meta.assignedAt = new Date().toISOString()
+
+          // Send email notification
+          const services = await readServices()
+          const service = services.find((s) => s.id === serviceId)
+          const serviceName = service?.name ?? serviceId
+          await sendAssignmentEmail(body.assignedTo, serviceName, type === 'contacts' ? 'contact' : 'order', itemId)
+        }
+
+        const updated = await setReview(serviceId, type as 'contacts' | 'orders', itemId, meta)
+        return json(updated)
       }
 
       return json({ error: 'Not found' }, 404)
