@@ -1,11 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'react-router'
 import { getService, getContacts, getOrders } from '@/services/api'
-import { ContactsTable } from '@/components/services/ContactsTable'
-import { OrdersTable } from '@/components/services/OrdersTable'
+import { KanbanBoard } from '@/components/services/KanbanBoard'
 import { MappingDialog } from '@/components/services/MappingDialog'
 import { Button } from '@/components/ui/button'
-import type { Service, Contact, Order } from '@onecrm/shared'
+import type { Service, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
 import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield, Mail, ShoppingCart, Settings2 } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -17,8 +16,8 @@ type Tab = 'contacts' | 'orders'
 export function ServiceDetail() {
   const { serviceId } = useParams<{ serviceId: string }>()
   const [service, setService] = useState<Service | undefined>()
-  const [contacts, setContacts] = useState<Contact[]>([])
-  const [orders, setOrders] = useState<Order[]>([])
+  const [contacts, setContacts] = useState<ReviewableContact[]>([])
+  const [orders, setOrders] = useState<ReviewableOrder[]>([])
   const [activeTab, setActiveTab] = useState<Tab>('contacts')
   const [mappingOpen, setMappingOpen] = useState(false)
 
@@ -99,8 +98,22 @@ export function ServiceDetail() {
         </Button>
       </div>
 
-      {activeTab === 'contacts' && <ContactsTable contacts={contacts} />}
-      {activeTab === 'orders' && <OrdersTable orders={orders} />}
+      {activeTab === 'contacts' && (
+        <KanbanBoard
+          items={contacts}
+          serviceId={service.id}
+          type="contacts"
+          onUpdated={loadData}
+        />
+      )}
+      {activeTab === 'orders' && (
+        <KanbanBoard
+          items={orders}
+          serviceId={service.id}
+          type="orders"
+          onUpdated={loadData}
+        />
+      )}
 
       <MappingDialog
         open={mappingOpen}

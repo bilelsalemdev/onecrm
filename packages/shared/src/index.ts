@@ -9,5 +9,10 @@ export {
   type Order,
   type ContactStatus,
   type Contact,
+  type ReviewStatus,
+  type ReviewMeta,
+  type ReviewableContact,
+  type ReviewableOrder,
+  type EmailConfig,
   stripCredentials,
 } from './types'

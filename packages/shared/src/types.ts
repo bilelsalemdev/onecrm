@@ -78,6 +78,30 @@ export interface Contact {
   status: ContactStatus
 }
 
+// Review system — Kanban statuses
+export type ReviewStatus = 'to-review' | 'under-review' | 'completed'
+
+export interface ReviewMeta {
+  reviewStatus: ReviewStatus
+  assignedTo?: string // email
+  assignedAt?: string // ISO date
+  note?: string
+}
+
+// A contact/order enriched with review metadata
+export type ReviewableContact = Contact & ReviewMeta
+export type ReviewableOrder = Order & ReviewMeta
+
+// Email config for notifications
+export interface EmailConfig {
+  enabled: boolean
+  smtpHost?: string
+  smtpPort?: number
+  smtpUser?: string
+  smtpPass?: string
+  fromEmail?: string
+}
+
 // Utilities
 export function stripCredentials(config: ServiceConfig): Service {
   return {

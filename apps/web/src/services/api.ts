@@ -1,4 +1,4 @@
-import type { Service, Contact, Order, ServiceFormData, FieldMapping } from '@onecrm/shared'
+import type { Service, Contact, ServiceFormData, FieldMapping, ReviewStatus, ReviewMeta, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
 
 const API = '/api'
 
@@ -26,20 +26,32 @@ export async function getService(id: string): Promise<Service | undefined> {
   }
 }
 
-export async function getContacts(serviceId: string): Promise<Contact[]> {
+export async function getContacts(serviceId: string): Promise<ReviewableContact[]> {
   try {
-    return await request<Contact[]>(`/services/${serviceId}/contacts`)
+    return await request<ReviewableContact[]>(`/services/${serviceId}/contacts`)
   } catch {
     return []
   }
 }
 
-export async function getOrders(serviceId: string): Promise<Order[]> {
+export async function getOrders(serviceId: string): Promise<ReviewableOrder[]> {
   try {
-    return await request<Order[]>(`/services/${serviceId}/orders`)
+    return await request<ReviewableOrder[]>(`/services/${serviceId}/orders`)
   } catch {
     return []
   }
+}
+
+export async function updateReview(
+  serviceId: string,
+  type: 'contacts' | 'orders',
+  itemId: string,
+  data: { reviewStatus?: ReviewStatus; assignedTo?: string; note?: string }
+): Promise<ReviewMeta> {
+  return request<ReviewMeta>(`/services/${serviceId}/reviews/${type}/${itemId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
 }
 
 export async function getAllContacts(): Promise<Contact[]> {
