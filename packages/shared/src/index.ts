@@ -10,6 +10,7 @@ export {
   type ContactStatus,
   type Contact,
   type ReviewStatus,
+  type Priority,
   type ReviewMeta,
   type ReviewableContact,
   type ReviewableOrder,

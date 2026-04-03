@@ -1,4 +1,4 @@
-import type { Service, Contact, ServiceFormData, FieldMapping, ReviewStatus, ReviewMeta, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
+import type { Service, Contact, ServiceFormData, FieldMapping, ReviewStatus, Priority, ReviewMeta, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
 
 const API = '/api'
 
@@ -46,7 +46,7 @@ export async function updateReview(
   serviceId: string,
   type: 'contacts' | 'orders',
   itemId: string,
-  data: { reviewStatus?: ReviewStatus; assignedTo?: string; note?: string }
+  data: { reviewStatus?: ReviewStatus; priority?: Priority; assignees?: string[]; assignedTo?: string; note?: string }
 ): Promise<ReviewMeta> {
   return request<ReviewMeta>(`/services/${serviceId}/reviews/${type}/${itemId}`, {
     method: 'PATCH',

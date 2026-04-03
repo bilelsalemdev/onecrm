@@ -18,11 +18,10 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { updateReview } from '@/services/api'
+import { CardDetailDialog } from './CardDetailDialog'
 import type { ReviewStatus, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
-import { Mail, Phone, MessageSquare, Package, DollarSign, UserPlus, X, Send, GripVertical } from 'lucide-react'
+import { Phone, MessageSquare, Package, DollarSign, GripVertical, Flag, Users } from 'lucide-react'
 
 type ReviewableItem = ReviewableContact | ReviewableOrder
 
@@ -41,15 +40,23 @@ const COLUMNS: ColumnDef[] = [
   { id: 'completed', title: 'Completed', color: 'text-emerald-600', bgColor: 'bg-emerald-50', borderColor: 'border-emerald-200', dotColor: 'bg-emerald-400' },
 ]
 
+const PRIORITY_COLORS: Record<string, string> = {
+  low: 'text-slate-400',
+  medium: 'text-blue-400',
+  high: 'text-orange-500',
+  urgent: 'text-red-500',
+}
+
 function isContact(item: ReviewableItem): item is ReviewableContact {
   return 'email' in item && 'phone' in item && 'message' in item
 }
 
-// --- Card Content (shared between real card and overlay) ---
+// --- Card Content (for drag overlay) ---
 
-function CardContent({ item }: { item: ReviewableItem }) {
+function CardOverlayContent({ item }: { item: ReviewableItem }) {
   const contact = isContact(item) ? item : null
   const order = !isContact(item) ? item : null
+  const allAssignees = item.assignees ?? (item.assignedTo ? [item.assignedTo] : [])
 
   return (
     <div className="space-y-2.5">
@@ -64,43 +71,24 @@ function CardContent({ item }: { item: ReviewableItem }) {
         </div>
         <GripVertical className="h-4 w-4 text-muted-foreground/30 shrink-0" />
       </div>
-
-      {contact && (
-        <div className="space-y-1">
-          {contact.phone && (
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Phone className="h-3 w-3" />
-              <span className="truncate">{contact.phone}</span>
-            </div>
-          )}
-          {contact.message && (
-            <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
-              <MessageSquare className="h-3 w-3 mt-0.5 shrink-0" />
-              <span className="line-clamp-2">{contact.message}</span>
-            </div>
-          )}
+      {contact?.message && (
+        <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
+          <MessageSquare className="h-3 w-3 mt-0.5 shrink-0" />
+          <span className="line-clamp-2">{contact.message}</span>
         </div>
       )}
-
       {order && (
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Package className="h-3 w-3" />
-            <span className="truncate">{order.product}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs font-medium">
-            <DollarSign className="h-3 w-3" />
-            <span>{Number(order.amount).toFixed(2)} {order.currency}</span>
-          </div>
+        <div className="flex items-center gap-1.5 text-xs font-medium">
+          <DollarSign className="h-3 w-3" />
+          <span>{Number(order.amount).toFixed(2)} {order.currency}</span>
         </div>
       )}
-
       <div className="flex items-center justify-between pt-1 border-t border-border/50">
         <span className="text-[10px] text-muted-foreground/60">{item.date}</span>
-        {item.assignedTo && (
+        {allAssignees.length > 0 && (
           <Badge variant="secondary" className="text-[10px] gap-1 py-0 h-5">
-            <Mail className="h-2.5 w-2.5" />
-            {item.assignedTo.split('@')[0]}
+            <Users className="h-2.5 w-2.5" />
+            {allAssignees.length}
           </Badge>
         )}
       </div>
@@ -112,16 +100,10 @@ function CardContent({ item }: { item: ReviewableItem }) {
 
 interface SortableCardProps {
   item: ReviewableItem
-  serviceId: string
-  type: 'contacts' | 'orders'
-  onUpdated: () => void
+  onClick: (item: ReviewableItem) => void
 }
 
-function SortableCard({ item, serviceId, type, onUpdated }: SortableCardProps) {
-  const [assigning, setAssigning] = useState(false)
-  const [assignEmail, setAssignEmail] = useState('')
-  const [saving, setSaving] = useState(false)
-
+function SortableCard({ item, onClick }: SortableCardProps) {
   const itemId = String(item.id)
 
   const {
@@ -138,115 +120,109 @@ function SortableCard({ item, serviceId, type, onUpdated }: SortableCardProps) {
     transition,
   }
 
-  async function handleAssign() {
-    if (!assignEmail.trim()) return
-    setSaving(true)
-    try {
-      await updateReview(serviceId, type, itemId, { assignedTo: assignEmail.trim() })
-      setAssigning(false)
-      setAssignEmail('')
-      onUpdated()
-    } finally {
-      setSaving(false)
-    }
-  }
+  const contact = isContact(item) ? item : null
+  const order = !isContact(item) ? item : null
+  const allAssignees = item.assignees ?? (item.assignedTo ? [item.assignedTo] : [])
+  const priorityColor = PRIORITY_COLORS[item.priority ?? 'medium']
 
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
       <Card
-        className={`p-3 group transition-shadow duration-150 ${
+        onClick={() => onClick(item)}
+        className={`p-3 group cursor-pointer transition-all duration-150 ${
           isDragging
             ? 'opacity-40 shadow-none'
-            : 'hover:shadow-md'
+            : 'hover:shadow-md hover:border-primary/20'
         }`}
       >
         <div className="space-y-2.5">
           <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-sm font-semibold truncate">
-                {isContact(item) ? item.name : (item as ReviewableOrder).customerName}
-              </p>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                {item.priority && item.priority !== 'medium' && (
+                  <Flag className={`h-3 w-3 shrink-0 ${priorityColor}`} />
+                )}
+                <p className="text-sm font-semibold truncate">
+                  {contact ? contact.name : order?.customerName}
+                </p>
+              </div>
               <p className="text-xs text-muted-foreground/70 truncate">
-                {isContact(item) ? item.email : (item as ReviewableOrder).customerEmail}
+                {contact ? contact.email : order?.customerEmail}
               </p>
             </div>
             <div
               {...listeners}
+              onClick={(e) => e.stopPropagation()}
               className="cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-muted transition-colors"
             >
               <GripVertical className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
             </div>
           </div>
 
-          {isContact(item) && (
+          {contact && (
             <div className="space-y-1">
-              {item.phone && (
+              {contact.phone && (
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Phone className="h-3 w-3" />
-                  <span className="truncate">{item.phone}</span>
+                  <span className="truncate">{contact.phone}</span>
                 </div>
               )}
-              {item.message && (
+              {contact.message && (
                 <div className="flex items-start gap-1.5 text-xs text-muted-foreground">
                   <MessageSquare className="h-3 w-3 mt-0.5 shrink-0" />
-                  <span className="line-clamp-2">{item.message}</span>
+                  <span className="line-clamp-2">{contact.message}</span>
                 </div>
               )}
             </div>
           )}
 
-          {!isContact(item) && (
+          {order && (
             <div className="space-y-1">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Package className="h-3 w-3" />
-                <span className="truncate">{(item as ReviewableOrder).product}</span>
+                <span className="truncate">{order.product}</span>
               </div>
               <div className="flex items-center gap-1.5 text-xs font-medium">
                 <DollarSign className="h-3 w-3" />
-                <span>{Number((item as ReviewableOrder).amount).toFixed(2)} {(item as ReviewableOrder).currency}</span>
+                <span>{Number(order.amount).toFixed(2)} {order.currency}</span>
               </div>
             </div>
           )}
 
           <div className="flex items-center justify-between pt-1 border-t border-border/50">
             <span className="text-[10px] text-muted-foreground/60">{item.date}</span>
-
-            {item.assignedTo ? (
-              <Badge variant="secondary" className="text-[10px] gap-1 py-0 h-5">
-                <Mail className="h-2.5 w-2.5" />
-                {item.assignedTo.split('@')[0]}
-              </Badge>
-            ) : (
-              <Button
-                variant="ghost"
-                size="xs"
-                className="text-[10px] text-muted-foreground/60 hover:text-primary h-5 px-1.5"
-                onClick={() => setAssigning(true)}
-              >
-                <UserPlus className="h-3 w-3 mr-1" />
-                Assign
-              </Button>
-            )}
+            <div className="flex items-center gap-1.5">
+              {item.priority && (
+                <Badge variant="outline" className="text-[9px] py-0 h-4 px-1.5 gap-0.5 border-none bg-muted/50">
+                  <Flag className={`h-2.5 w-2.5 ${priorityColor}`} />
+                  {item.priority}
+                </Badge>
+              )}
+              {allAssignees.length > 0 && (
+                <div className="flex -space-x-1">
+                  {allAssignees.slice(0, 3).map((email) => (
+                    <div
+                      key={email}
+                      title={email}
+                      className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary ring-2 ring-background"
+                    >
+                      {email[0].toUpperCase()}
+                    </div>
+                  ))}
+                  {allAssignees.length > 3 && (
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[9px] font-medium text-muted-foreground ring-2 ring-background">
+                      +{allAssignees.length - 3}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          {assigning && (
-            <div className="flex items-center gap-1.5 pt-1 animate-fade-in">
-              <Input
-                type="email"
-                placeholder="email@company.com"
-                value={assignEmail}
-                onChange={(e) => setAssignEmail(e.target.value)}
-                className="h-7 text-xs"
-                autoFocus
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAssign(); if (e.key === 'Escape') setAssigning(false) }}
-              />
-              <Button size="icon-xs" onClick={handleAssign} disabled={saving || !assignEmail.trim()}>
-                <Send className="h-3 w-3" />
-              </Button>
-              <Button size="icon-xs" variant="ghost" onClick={() => setAssigning(false)}>
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
+          {item.note && (
+            <p className="text-[10px] text-muted-foreground/60 italic line-clamp-1 pt-0.5">
+              {item.note}
+            </p>
           )}
         </div>
       </Card>
@@ -259,13 +235,11 @@ function SortableCard({ item, serviceId, type, onUpdated }: SortableCardProps) {
 interface DroppableColumnProps {
   col: ColumnDef
   items: ReviewableItem[]
-  serviceId: string
-  type: 'contacts' | 'orders'
-  onUpdated: () => void
   isOver: boolean
+  onCardClick: (item: ReviewableItem) => void
 }
 
-function DroppableColumn({ col, items, serviceId, type, onUpdated, isOver }: DroppableColumnProps) {
+function DroppableColumn({ col, items, isOver, onCardClick }: DroppableColumnProps) {
   const itemIds = useMemo(() => items.map((i) => String(i.id)), [items])
 
   return (
@@ -297,9 +271,7 @@ function DroppableColumn({ col, items, serviceId, type, onUpdated, isOver }: Dro
               <SortableCard
                 key={String(item.id)}
                 item={item}
-                serviceId={serviceId}
-                type={type}
-                onUpdated={onUpdated}
+                onClick={onCardClick}
               />
             ))
           )}
@@ -321,12 +293,12 @@ interface KanbanBoardProps {
 export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardProps) {
   const [activeItem, setActiveItem] = useState<ReviewableItem | null>(null)
   const [overColumnId, setOverColumnId] = useState<ReviewStatus | null>(null)
-
-  // Local state for optimistic column assignments during drag
   const [columnOverrides, setColumnOverrides] = useState<Map<string, ReviewStatus>>(new Map())
+  const [detailItem, setDetailItem] = useState<ReviewableItem | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   )
 
   function getColumnItems(status: ReviewStatus): ReviewableItem[] {
@@ -345,8 +317,7 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
   }
 
   function handleDragStart(event: DragStartEvent) {
-    const { active } = event
-    const item = items.find((i) => String(i.id) === String(active.id))
+    const item = items.find((i) => String(i.id) === String(event.active.id))
     if (item) setActiveItem(item)
   }
 
@@ -357,32 +328,23 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
     const activeId = String(active.id)
     const overId = String(over.id)
 
-    // Determine target column
     let targetColumn: ReviewStatus | null = null
-
-    // Check if over is a column id directly
     if (COLUMNS.some((c) => c.id === overId)) {
       targetColumn = overId as ReviewStatus
     } else {
-      // Over is another card — find its column
       targetColumn = findColumnForItem(overId)
     }
-
     if (!targetColumn) return
 
     const currentColumn = findColumnForItem(activeId)
     if (currentColumn !== targetColumn) {
-      // Move item to new column optimistically
       setColumnOverrides((prev) => new Map(prev).set(activeId, targetColumn))
     }
-
     setOverColumnId(targetColumn)
   }
 
   async function handleDragEnd(event: DragEndEvent) {
-    const { active } = event
-    const activeId = String(active.id)
-
+    const activeId = String(event.active.id)
     const targetColumn = columnOverrides.get(activeId)
     const originalColumn = items.find((i) => String(i.id) === activeId)?.reviewStatus ?? 'to-review'
 
@@ -390,7 +352,6 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
     setOverColumnId(null)
     setColumnOverrides(new Map())
 
-    // If column changed, persist
     if (targetColumn && targetColumn !== originalColumn) {
       await updateReview(serviceId, type, activeId, { reviewStatus: targetColumn })
       onUpdated()
@@ -403,36 +364,50 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
     setColumnOverrides(new Map())
   }
 
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCorners}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
-        {COLUMNS.map((col) => (
-          <DroppableColumn
-            key={col.id}
-            col={col}
-            items={getColumnItems(col.id)}
-            serviceId={serviceId}
-            type={type}
-            onUpdated={onUpdated}
-            isOver={overColumnId === col.id}
-          />
-        ))}
-      </div>
+  function handleCardClick(item: ReviewableItem) {
+    setDetailItem(item)
+    setDetailOpen(true)
+  }
 
-      <DragOverlay dropAnimation={{ duration: 200, easing: 'ease' }}>
-        {activeItem ? (
-          <Card className="p-3 shadow-xl ring-2 ring-primary/20 rotate-[2deg] scale-105">
-            <CardContent item={activeItem} />
-          </Card>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+  return (
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
+          {COLUMNS.map((col) => (
+            <DroppableColumn
+              key={col.id}
+              col={col}
+              items={getColumnItems(col.id)}
+              isOver={overColumnId === col.id}
+              onCardClick={handleCardClick}
+            />
+          ))}
+        </div>
+
+        <DragOverlay dropAnimation={{ duration: 200, easing: 'ease' }}>
+          {activeItem ? (
+            <Card className="p-3 shadow-xl ring-2 ring-primary/20 rotate-[2deg] scale-105">
+              <CardOverlayContent item={activeItem} />
+            </Card>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+
+      <CardDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        item={detailItem}
+        serviceId={serviceId}
+        type={type}
+        onUpdated={onUpdated}
+      />
+    </>
   )
 }

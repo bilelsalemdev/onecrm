@@ -80,10 +80,13 @@ export interface Contact {
 
 // Review system — Kanban statuses
 export type ReviewStatus = 'to-review' | 'under-review' | 'completed'
+export type Priority = 'low' | 'medium' | 'high' | 'urgent'
 
 export interface ReviewMeta {
   reviewStatus: ReviewStatus
-  assignedTo?: string // email
+  priority?: Priority
+  assignees?: string[] // emails
+  assignedTo?: string // legacy single assignee
   assignedAt?: string // ISO date
   note?: string
 }

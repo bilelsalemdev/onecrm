@@ -1,6 +1,6 @@
 import { readServices, writeServices } from './storage'
 import { stripCredentials } from '@onecrm/shared'
-import type { ServiceConfig, AuthConfig, ReviewStatus } from '@onecrm/shared'
+import type { ServiceConfig, AuthConfig, ReviewStatus, Priority } from '@onecrm/shared'
 import { proxyContacts, proxyOrders, fetchSampleFields } from './proxy'
 import { getReviews, setReview } from './reviews'
 import { sendAssignmentEmail } from './email'
@@ -288,28 +288,49 @@ Bun.serve({
         return json({ ok: true })
       }
 
-      // PATCH /api/services/:id/reviews/:type/:itemId — update review status
+      // PATCH /api/services/:id/reviews/:type/:itemId — update review
       const reviewMatch = urlPath.match(/^\/api\/services\/([^/]+)\/reviews\/(contacts|orders)\/([^/]+)$/)
       if (reviewMatch && method === 'PATCH') {
-        const [, serviceId, type, itemId] = reviewMatch
-        const body = await req.json() as { reviewStatus?: ReviewStatus; assignedTo?: string; note?: string }
+        const [, serviceId, reviewType, itemId] = reviewMatch
+        const body = await req.json() as {
+          reviewStatus?: ReviewStatus
+          priority?: Priority
+          assignees?: string[]
+          assignedTo?: string
+          note?: string
+        }
 
         const meta: Record<string, unknown> = {}
         if (body.reviewStatus) meta.reviewStatus = body.reviewStatus
+        if (body.priority !== undefined) meta.priority = body.priority
         if (body.note !== undefined) meta.note = body.note
 
-        if (body.assignedTo) {
-          meta.assignedTo = body.assignedTo
+        // Handle assignees array
+        if (body.assignees) {
+          meta.assignees = body.assignees
+          meta.assignedTo = body.assignees[0] // backward compat
           meta.assignedAt = new Date().toISOString()
 
-          // Send email notification
+          // Send email to all new assignees
           const services = await readServices()
           const service = services.find((s) => s.id === serviceId)
           const serviceName = service?.name ?? serviceId
-          await sendAssignmentEmail(body.assignedTo, serviceName, type === 'contacts' ? 'contact' : 'order', itemId)
+          for (const email of body.assignees) {
+            await sendAssignmentEmail(email, serviceName, reviewType === 'contacts' ? 'contact' : 'order', itemId)
+          }
+        } else if (body.assignedTo) {
+          // Legacy single assignee
+          meta.assignedTo = body.assignedTo
+          meta.assignees = [body.assignedTo]
+          meta.assignedAt = new Date().toISOString()
+
+          const services = await readServices()
+          const service = services.find((s) => s.id === serviceId)
+          const serviceName = service?.name ?? serviceId
+          await sendAssignmentEmail(body.assignedTo, serviceName, reviewType === 'contacts' ? 'contact' : 'order', itemId)
         }
 
-        const updated = await setReview(serviceId, type as 'contacts' | 'orders', itemId, meta)
+        const updated = await setReview(serviceId, reviewType as 'contacts' | 'orders', itemId, meta)
         return json(updated)
       }
 
