@@ -13,6 +13,7 @@ export interface ServiceConfig {
   name: string
   description: string
   icon: string
+  logo?: string
   endpoint: string
   auth: AuthConfig
 }
@@ -23,6 +24,7 @@ export interface Service {
   name: string
   description: string
   icon: string
+  logo?: string
   endpoint: string
   authType: AuthType
 }
@@ -32,6 +34,7 @@ export interface ServiceFormData {
   name: string
   description: string
   icon: string
+  logo?: string
   endpoint: string
   auth: AuthConfig
 }
@@ -57,6 +60,7 @@ export function stripCredentials(config: ServiceConfig): Service {
     name: config.name,
     description: config.description,
     icon: config.icon,
+    logo: config.logo,
     endpoint: config.endpoint,
     authType: config.auth.type,
   }
