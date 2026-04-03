@@ -22,7 +22,8 @@
       "Bash(find /mnt/c/Users/bilel/Desktop/neov/onecrm/node_modules/@base-ui/react/esm/select/root -name *.d.ts)",
       "Bash(find /mnt/c/Users/bilel/Desktop/neov/onecrm/node_modules/@base-ui/react/select/root -name *.d.ts -o -name *.d.mts)",
       "Bash(grep -v -E '^\\(apps|packages|docs|node_modules|dist|\\\\.git|\\\\.claude|\\\\.gitignore|package\\\\.json|bun\\\\.lock\\)$')",
-      "Bash(docker compose:*)"
+      "Bash(docker compose:*)",
+      "Bash(bun:*)"
     ]
   }
 }

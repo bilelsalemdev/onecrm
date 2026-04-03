@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import type { AuthConfig, AuthType, Service } from "@onecrm/shared"
 import { createService, updateService, uploadLogo } from "@/services/api"
+import { ImageIcon, Palette } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -65,6 +66,7 @@ export function ServiceFormDialog({
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [token, setToken] = useState("")
+  const [logoMode, setLogoMode] = useState<'icon' | 'upload'>('icon')
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -84,6 +86,7 @@ export function ServiceFormDialog({
       setToken("")
       setLogoFile(null)
       setLogoPreview(editingService?.logo ?? null)
+      setLogoMode(editingService?.logo ? 'upload' : 'icon')
     } else if (open) {
       // Reset all fields for fresh dialog
       setName("")
@@ -98,6 +101,7 @@ export function ServiceFormDialog({
       setToken("")
       setLogoFile(null)
       setLogoPreview(null)
+      setLogoMode('icon')
     }
   }, [editingService, open])
 
@@ -162,45 +166,71 @@ export function ServiceFormDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label>Icon</Label>
-            <Select
-              value={icon}
-              onValueChange={(value) => {
-                if (value != null) setIcon(value)
-              }}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ICON_OPTIONS.map((iconName) => (
-                  <SelectItem key={iconName} value={iconName}>
-                    {iconName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid gap-2">
-            <Label>Logo (optional)</Label>
-            <div className="flex items-center gap-4">
-              {(logoPreview) && (
-                <img src={logoPreview} alt="Logo preview" className="h-12 w-12 rounded-lg object-cover border" />
-              )}
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) {
-                    setLogoFile(file)
-                    setLogoPreview(URL.createObjectURL(file))
-                  }
-                }}
-                className="flex-1"
-              />
+            <Label>Service Image</Label>
+            <div className="flex gap-1 rounded-lg border p-1 w-fit">
+              <button
+                type="button"
+                onClick={() => setLogoMode('icon')}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                  logoMode === 'icon'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                <Palette className="h-3.5 w-3.5" />
+                Icon
+              </button>
+              <button
+                type="button"
+                onClick={() => setLogoMode('upload')}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
+                  logoMode === 'upload'
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                }`}
+              >
+                <ImageIcon className="h-3.5 w-3.5" />
+                Upload Logo
+              </button>
             </div>
+
+            {logoMode === 'icon' ? (
+              <Select
+                value={icon}
+                onValueChange={(value) => {
+                  if (value != null) setIcon(value)
+                }}
+              >
+                <SelectTrigger className="w-full cursor-pointer">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ICON_OPTIONS.map((iconName) => (
+                    <SelectItem key={iconName} value={iconName} className="cursor-pointer">
+                      {iconName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <div className="flex items-center gap-4">
+                {logoPreview && (
+                  <img src={logoPreview} alt="Logo preview" className="h-12 w-12 rounded-lg object-cover border shadow-sm" />
+                )}
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setLogoFile(file)
+                      setLogoPreview(URL.createObjectURL(file))
+                    }
+                  }}
+                  className="flex-1 cursor-pointer"
+                />
+              </div>
+            )}
           </div>
 
           <div className="grid gap-2">

@@ -19,7 +19,7 @@ export function ServiceCard({ service, onEdit, onDelete }: ServiceCardProps) {
   const Icon = iconMap[service.icon] ?? Globe
 
   return (
-    <Card className="animate-fade-in-up group transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30">
+    <Card className="animate-fade-in-up group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30">
       <CardHeader className="flex flex-row items-start gap-4 pb-3">
         <Link to={`/services/${service.id}`} className="flex items-start gap-4 flex-1 min-w-0">
           {service.logo ? (

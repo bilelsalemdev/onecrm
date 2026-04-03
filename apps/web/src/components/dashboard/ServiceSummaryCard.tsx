@@ -12,7 +12,7 @@ export function ServiceSummaryCard({ service }: { service: Service }) {
 
   return (
     <Link to={`/services/${service.id}`}>
-      <Card className="animate-fade-in-up transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/30">
+      <Card className="animate-fade-in-up cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/30">
         <CardContent className="flex items-center gap-4 p-4">
           {service.logo ? (
             <img src={service.logo} alt={service.name} className="h-10 w-10 rounded-lg object-cover" />

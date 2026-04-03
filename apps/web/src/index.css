@@ -127,6 +127,9 @@
   html {
     @apply font-sans scroll-smooth;
   }
+  a, button, [role="button"], [data-slot="select-trigger"], [data-slot="select-item"], [data-slot="button"] {
+    cursor: pointer;
+  }
 }
 
 @keyframes fade-in-up {
