@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import type { AuthConfig, AuthType, Service, ServiceFormData } from "@onecrm/shared"
+import type { AuthConfig, AuthType, Service } from "@onecrm/shared"
+import { createService, updateService, uploadLogo } from "@/services/api"
 import {
   Dialog,
   DialogContent,
@@ -44,14 +45,14 @@ const AUTH_TYPE_OPTIONS: { value: AuthType; label: string }[] = [
 interface ServiceFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSubmit: (data: ServiceFormData) => Promise<void>
+  onSaved: () => void
   editingService?: Service
 }
 
 export function ServiceFormDialog({
   open,
   onOpenChange,
-  onSubmit,
+  onSaved,
   editingService,
 }: ServiceFormDialogProps) {
   const [name, setName] = useState("")
@@ -64,6 +65,8 @@ export function ServiceFormDialog({
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [token, setToken] = useState("")
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -79,6 +82,8 @@ export function ServiceFormDialog({
       setUsername("")
       setPassword("")
       setToken("")
+      setLogoFile(null)
+      setLogoPreview(editingService?.logo ?? null)
     } else if (open) {
       // Reset all fields for fresh dialog
       setName("")
@@ -91,6 +96,8 @@ export function ServiceFormDialog({
       setUsername("")
       setPassword("")
       setToken("")
+      setLogoFile(null)
+      setLogoPreview(null)
     }
   }, [editingService, open])
 
@@ -112,13 +119,16 @@ export function ServiceFormDialog({
     e.preventDefault()
     setSubmitting(true)
     try {
-      await onSubmit({
-        name,
-        description,
-        icon,
-        endpoint,
-        auth: buildAuthConfig(),
-      })
+      let result: Service
+      if (editingService) {
+        result = await updateService(editingService.id, { name, description, icon, endpoint, auth: buildAuthConfig() })
+      } else {
+        result = await createService({ name, description, icon, endpoint, auth: buildAuthConfig() })
+      }
+      if (logoFile) {
+        await uploadLogo(result.id, logoFile)
+      }
+      onSaved()
       onOpenChange(false)
     } finally {
       setSubmitting(false)
@@ -170,6 +180,27 @@ export function ServiceFormDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Logo (optional)</Label>
+            <div className="flex items-center gap-4">
+              {(logoPreview) && (
+                <img src={logoPreview} alt="Logo preview" className="h-12 w-12 rounded-lg object-cover border" />
+              )}
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    setLogoFile(file)
+                    setLogoPreview(URL.createObjectURL(file))
+                  }
+                }}
+                className="flex-1"
+              />
+            </div>
           </div>
 
           <div className="grid gap-2">

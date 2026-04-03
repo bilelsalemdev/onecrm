@@ -59,3 +59,14 @@ export async function updateService(id: string, data: ServiceFormData): Promise<
 export async function deleteService(id: string): Promise<void> {
   await request<unknown>(`/services/${id}`, { method: 'DELETE' })
 }
+
+export async function uploadLogo(serviceId: string, file: File): Promise<Service> {
+  const formData = new FormData()
+  formData.append('logo', file)
+  const res = await fetch(`${API}/services/${serviceId}/logo`, {
+    method: 'POST',
+    body: formData,
+  })
+  if (!res.ok) throw new Error('Logo upload failed')
+  return res.json() as Promise<Service>
+}

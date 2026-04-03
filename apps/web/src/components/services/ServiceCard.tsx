@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { Service } from '@onecrm/shared'
-import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield, Pencil, Trash2 } from 'lucide-react'
+import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield, Pencil, Trash2, ExternalLink } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield,
@@ -19,36 +19,36 @@ export function ServiceCard({ service, onEdit, onDelete }: ServiceCardProps) {
   const Icon = iconMap[service.icon] ?? Globe
 
   return (
-    <Card className="transition-all hover:shadow-md hover:border-primary/50">
-      <CardHeader className="flex flex-row items-center gap-4">
-        <Link to={`/services/${service.id}`} className="flex items-center gap-4 flex-1">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            <Icon className="h-6 w-6 text-primary" />
-          </div>
-          <div>
-            <CardTitle className="text-lg">{service.name}</CardTitle>
-            <p className="text-sm text-muted-foreground">{service.description}</p>
+    <Card className="animate-fade-in-up group transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/30">
+      <CardHeader className="flex flex-row items-start gap-4 pb-3">
+        <Link to={`/services/${service.id}`} className="flex items-start gap-4 flex-1 min-w-0">
+          {service.logo ? (
+            <img src={service.logo} alt={service.name} className="h-14 w-14 rounded-xl object-cover shadow-sm" />
+          ) : (
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5">
+              <Icon className="h-7 w-7 text-primary" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <CardTitle className="text-base font-semibold">{service.name}</CardTitle>
+            <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{service.description}</p>
           </div>
         </Link>
-        <div className="flex gap-1 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={(e) => { e.preventDefault(); onEdit(service) }}
-          >
-            <Pencil className="h-4 w-4" />
+        <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <Button variant="ghost" size="icon-sm" onClick={(e) => { e.preventDefault(); onEdit(service) }}>
+            <Pencil className="h-3.5 w-3.5" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={(e) => { e.preventDefault(); onDelete(service) }}
-          >
-            <Trash2 className="h-4 w-4 text-destructive" />
+          <Button variant="ghost" size="icon-sm" onClick={(e) => { e.preventDefault(); onDelete(service) }}>
+            <Trash2 className="h-3.5 w-3.5 text-destructive" />
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <Badge variant="secondary">{service.authType}</Badge>
+      <CardContent className="pt-0 flex items-center gap-2">
+        <Badge variant="secondary" className="text-xs">{service.authType}</Badge>
+        <span className="text-xs text-muted-foreground truncate flex items-center gap-1">
+          <ExternalLink className="h-3 w-3" />
+          {service.endpoint.replace(/^https?:\/\//, '').split('/')[0]}
+        </span>
       </CardContent>
     </Card>
   )

@@ -3,8 +3,8 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ServiceCard } from '@/components/services/ServiceCard'
 import { ServiceFormDialog } from '@/components/services/ServiceFormDialog'
-import { getServices, createService, updateService, deleteService } from '@/services/api'
-import type { Service, ServiceFormData } from '@onecrm/shared'
+import { getServices, deleteService } from '@/services/api'
+import type { Service } from '@onecrm/shared'
 
 export function Services() {
   const [services, setServices] = useState<Service[]>([])
@@ -19,12 +19,7 @@ export function Services() {
     loadServices()
   }, [loadServices])
 
-  async function handleSubmit(data: ServiceFormData) {
-    if (editingService) {
-      await updateService(editingService.id, data)
-    } else {
-      await createService(data)
-    }
+  function handleSaved() {
     loadServices()
   }
 
@@ -74,7 +69,7 @@ export function Services() {
       <ServiceFormDialog
         open={dialogOpen}
         onOpenChange={handleOpenChange}
-        onSubmit={handleSubmit}
+        onSaved={handleSaved}
         editingService={editingService}
       />
     </div>

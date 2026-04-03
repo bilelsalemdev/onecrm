@@ -12,14 +12,18 @@ export function ServiceSummaryCard({ service }: { service: Service }) {
 
   return (
     <Link to={`/services/${service.id}`}>
-      <Card className="transition-colors hover:bg-muted/50">
+      <Card className="animate-fade-in-up transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/30">
         <CardContent className="flex items-center gap-4 p-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-            <Icon className="h-5 w-5 text-primary" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-medium">{service.name}</p>
-            <p className="text-xs text-muted-foreground">{service.description}</p>
+          {service.logo ? (
+            <img src={service.logo} alt={service.name} className="h-10 w-10 rounded-lg object-cover" />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+              <Icon className="h-5 w-5 text-primary" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold truncate">{service.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{service.description}</p>
           </div>
         </CardContent>
       </Card>
