@@ -126,12 +126,12 @@ function SortableCard({ item, onClick }: SortableCardProps) {
   const priorityColor = PRIORITY_COLORS[item.priority ?? 'medium']
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <Card
-        onClick={() => onClick(item)}
+        onClick={() => { if (!isDragging) onClick(item) }}
         className={`p-3 group cursor-pointer transition-all duration-150 ${
           isDragging
-            ? 'opacity-40 shadow-none'
+            ? 'opacity-30 shadow-none'
             : 'hover:shadow-md hover:border-primary/20'
         }`}
       >
@@ -150,13 +150,7 @@ function SortableCard({ item, onClick }: SortableCardProps) {
                 {contact ? contact.email : order?.customerEmail}
               </p>
             </div>
-            <div
-              {...listeners}
-              onClick={(e) => e.stopPropagation()}
-              className="cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-muted transition-colors"
-            >
-              <GripVertical className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors" />
-            </div>
+            <GripVertical className="h-4 w-4 text-muted-foreground/30 group-hover:text-muted-foreground/60 transition-colors shrink-0" />
           </div>
 
           {contact && (
@@ -391,9 +385,9 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
           ))}
         </div>
 
-        <DragOverlay dropAnimation={{ duration: 200, easing: 'ease' }}>
+        <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
           {activeItem ? (
-            <Card className="p-3 shadow-xl ring-2 ring-primary/20 rotate-[2deg] scale-105">
+            <Card className="p-3 shadow-xl ring-2 ring-primary/20 opacity-95 w-[var(--dnd-overlay-width)]">
               <CardOverlayContent item={activeItem} />
             </Card>
           ) : null}
