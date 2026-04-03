@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   DndContext,
-  DragOverlay,
   PointerSensor,
   useSensor,
   useSensors,
@@ -170,7 +169,8 @@ function SortableCard({ item, onClick }: { item: ReviewableItem; onClick: (item:
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.3 : 1,
+    zIndex: isDragging ? 50 : undefined,
+    position: isDragging ? 'relative' as const : undefined,
   }
 
   return (
@@ -182,7 +182,7 @@ function SortableCard({ item, onClick }: { item: ReviewableItem; onClick: (item:
       onClick={() => { if (!isDragging) onClick(item) }}
       className="mb-2 touch-none"
     >
-      <CardBody item={item} />
+      <CardBody item={item} isDragging={isDragging} />
     </div>
   )
 }
@@ -248,14 +248,13 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardProps) {
-  const [activeItem, setActiveItem] = useState<ReviewableItem | null>(null)
   const [overColumnId, setOverColumnId] = useState<ReviewStatus | null>(null)
   const [localItems, setLocalItems] = useState<ReviewableItem[]>(items)
   const [detailItem, setDetailItem] = useState<ReviewableItem | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
 
   // Sync when parent items change
-  if (items !== localItems && !activeItem) {
+  if (items !== localItems && !overColumnId) {
     setLocalItems(items)
   }
 
@@ -275,9 +274,8 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
     return item ? (item.reviewStatus ?? 'to-review') : null
   }
 
-  function handleDragStart(event: DragStartEvent) {
-    const item = localItems.find((i) => String(i.id) === String(event.active.id))
-    if (item) setActiveItem(item)
+  function handleDragStart(_event: DragStartEvent) {
+    // no-op, sorting is handled by useSortable transforms
   }
 
   function handleDragOver(event: DragOverEvent) {
@@ -311,7 +309,6 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
-    setActiveItem(null)
     setOverColumnId(null)
 
     if (!over) return
@@ -329,7 +326,6 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
   }
 
   function handleDragCancel() {
-    setActiveItem(null)
     setOverColumnId(null)
     setLocalItems(items)
   }
@@ -356,9 +352,6 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
           ))}
         </div>
 
-        <DragOverlay>
-          {activeItem ? <CardBody item={activeItem} isDragging /> : null}
-        </DragOverlay>
       </DndContext>
 
       <CardDetailDialog
