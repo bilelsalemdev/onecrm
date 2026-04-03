@@ -15,6 +15,7 @@ export interface ServiceConfig {
   icon: string
   logo?: string
   endpoint: string
+  ordersEndpoint?: string
   auth: AuthConfig
 }
 
@@ -26,6 +27,7 @@ export interface Service {
   icon: string
   logo?: string
   endpoint: string
+  ordersEndpoint?: string
   authType: AuthType
 }
 
@@ -36,7 +38,23 @@ export interface ServiceFormData {
   icon: string
   logo?: string
   endpoint: string
+  ordersEndpoint?: string
   auth: AuthConfig
+}
+
+// Order
+export type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled' | 'refunded'
+
+export interface Order {
+  id: string
+  serviceId: string
+  customerName: string
+  customerEmail: string
+  product: string
+  amount: number
+  currency: string
+  date: string
+  status: OrderStatus
 }
 
 // Contact
@@ -62,6 +80,7 @@ export function stripCredentials(config: ServiceConfig): Service {
     icon: config.icon,
     logo: config.logo,
     endpoint: config.endpoint,
+    ordersEndpoint: config.ordersEndpoint,
     authType: config.auth.type,
   }
 }

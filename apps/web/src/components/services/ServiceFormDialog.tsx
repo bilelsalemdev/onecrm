@@ -60,6 +60,7 @@ export function ServiceFormDialog({
   const [description, setDescription] = useState("")
   const [icon, setIcon] = useState("Globe")
   const [endpoint, setEndpoint] = useState("")
+  const [ordersEndpoint, setOrdersEndpoint] = useState("")
   const [authType, setAuthType] = useState<AuthType>("none")
   const [apiKey, setApiKey] = useState("")
   const [headerName, setHeaderName] = useState("X-API-Key")
@@ -77,6 +78,7 @@ export function ServiceFormDialog({
       setDescription(editingService.description)
       setIcon(editingService.icon)
       setEndpoint(editingService.endpoint)
+      setOrdersEndpoint(editingService.ordersEndpoint ?? "")
       setAuthType(editingService.authType)
       // Leave credential fields empty for editing
       setApiKey("")
@@ -93,6 +95,7 @@ export function ServiceFormDialog({
       setDescription("")
       setIcon("Globe")
       setEndpoint("")
+      setOrdersEndpoint("")
       setAuthType("none")
       setApiKey("")
       setHeaderName("X-API-Key")
@@ -125,9 +128,9 @@ export function ServiceFormDialog({
     try {
       let result: Service
       if (editingService) {
-        result = await updateService(editingService.id, { name, description, icon, endpoint, auth: buildAuthConfig() })
+        result = await updateService(editingService.id, { name, description, icon, endpoint, ordersEndpoint: ordersEndpoint || undefined, auth: buildAuthConfig() })
       } else {
-        result = await createService({ name, description, icon, endpoint, auth: buildAuthConfig() })
+        result = await createService({ name, description, icon, endpoint, ordersEndpoint: ordersEndpoint || undefined, auth: buildAuthConfig() })
       }
       if (logoFile) {
         await uploadLogo(result.id, logoFile)
@@ -244,7 +247,7 @@ export function ServiceFormDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="service-endpoint">Endpoint URL</Label>
+            <Label htmlFor="service-endpoint">Contacts Endpoint URL</Label>
             <Input
               id="service-endpoint"
               type="url"
@@ -252,6 +255,17 @@ export function ServiceFormDialog({
               onChange={(e) => setEndpoint(e.target.value)}
               placeholder="https://example.com/api/contacts"
               required
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="service-orders-endpoint">Orders Endpoint URL (optional)</Label>
+            <Input
+              id="service-orders-endpoint"
+              type="url"
+              value={ordersEndpoint}
+              onChange={(e) => setOrdersEndpoint(e.target.value)}
+              placeholder="https://example.com/api/orders"
             />
           </div>
 

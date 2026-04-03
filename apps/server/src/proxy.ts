@@ -1,9 +1,7 @@
 import type { ServiceConfig } from '@onecrm/shared'
 
-export async function proxyContacts(service: ServiceConfig): Promise<unknown> {
-  const headers: Record<string, string> = {
-    'Accept': 'application/json',
-  }
+function buildAuthHeaders(service: ServiceConfig): Record<string, string> {
+  const headers: Record<string, string> = { 'Accept': 'application/json' }
 
   switch (service.auth.type) {
     case 'api-key':
@@ -21,11 +19,24 @@ export async function proxyContacts(service: ServiceConfig): Promise<unknown> {
       break
   }
 
-  const response = await fetch(service.endpoint, { headers })
+  return headers
+}
 
+async function proxyRequest(url: string, headers: Record<string, string>): Promise<unknown> {
+  const response = await fetch(url, { headers })
   if (!response.ok) {
     throw new Error(`External API error: ${response.status} ${response.statusText}`)
   }
-
   return response.json()
+}
+
+export async function proxyContacts(service: ServiceConfig): Promise<unknown> {
+  return proxyRequest(service.endpoint, buildAuthHeaders(service))
+}
+
+export async function proxyOrders(service: ServiceConfig): Promise<unknown> {
+  if (!service.ordersEndpoint) {
+    return []
+  }
+  return proxyRequest(service.ordersEndpoint, buildAuthHeaders(service))
 }

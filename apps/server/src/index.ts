@@ -1,7 +1,7 @@
 import { readServices, writeServices } from './storage'
 import { stripCredentials } from '@onecrm/shared'
 import type { ServiceConfig, AuthConfig } from '@onecrm/shared'
-import { proxyContacts } from './proxy'
+import { proxyContacts, proxyOrders } from './proxy'
 import { mkdir as mkdirNode } from 'fs/promises'
 import { existsSync } from 'fs'
 
@@ -104,6 +104,18 @@ Bun.serve({
       // Routes with :id
       const serviceMatch = urlPath.match(/^\/api\/services\/([^/]+)$/)
       const contactsMatch = urlPath.match(/^\/api\/services\/([^/]+)\/contacts$/)
+      const ordersMatch = urlPath.match(/^\/api\/services\/([^/]+)\/orders$/)
+
+      // GET /api/services/:id/orders
+      if (ordersMatch && method === 'GET') {
+        const id = ordersMatch[1]
+        const services = await readServices()
+        const service = services.find((s) => s.id === id)
+        if (!service) return json({ error: 'Service not found' }, 404)
+
+        const orders = await proxyOrders(service)
+        return json(orders)
+      }
 
       // GET /api/services/:id/contacts
       if (contactsMatch && method === 'GET') {

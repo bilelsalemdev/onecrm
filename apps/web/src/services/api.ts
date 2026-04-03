@@ -1,4 +1,4 @@
-import type { Service, Contact, ServiceFormData } from '@onecrm/shared'
+import type { Service, Contact, Order, ServiceFormData } from '@onecrm/shared'
 
 const API = '/api'
 
@@ -29,6 +29,14 @@ export async function getService(id: string): Promise<Service | undefined> {
 export async function getContacts(serviceId: string): Promise<Contact[]> {
   try {
     return await request<Contact[]>(`/services/${serviceId}/contacts`)
+  } catch {
+    return []
+  }
+}
+
+export async function getOrders(serviceId: string): Promise<Order[]> {
+  try {
+    return await request<Order[]>(`/services/${serviceId}/orders`)
   } catch {
     return []
   }

@@ -1,23 +1,29 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
-import { getService, getContacts } from '@/services/api'
+import { getService, getContacts, getOrders } from '@/services/api'
 import { ContactsTable } from '@/components/services/ContactsTable'
-import type { Service, Contact } from '@onecrm/shared'
-import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield } from 'lucide-react'
+import { OrdersTable } from '@/components/services/OrdersTable'
+import type { Service, Contact, Order } from '@onecrm/shared'
+import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield, Mail, ShoppingCart } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield,
 }
 
+type Tab = 'contacts' | 'orders'
+
 export function ServiceDetail() {
   const { serviceId } = useParams<{ serviceId: string }>()
   const [service, setService] = useState<Service | undefined>()
   const [contacts, setContacts] = useState<Contact[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [activeTab, setActiveTab] = useState<Tab>('contacts')
 
   useEffect(() => {
     if (!serviceId) return
     getService(serviceId).then(setService)
     getContacts(serviceId).then(setContacts)
+    getOrders(serviceId).then(setOrders)
   }, [serviceId])
 
   if (!service) {
@@ -29,6 +35,11 @@ export function ServiceDetail() {
   }
 
   const Icon = iconMap[service.icon] ?? Globe
+
+  const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; count: number }[] = [
+    { id: 'contacts', label: 'Contacts', icon: Mail, count: contacts.length },
+    { id: 'orders', label: 'Orders', icon: ShoppingCart, count: orders.length },
+  ]
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -46,7 +57,32 @@ export function ServiceDetail() {
         </div>
       </div>
 
-      <ContactsTable contacts={contacts} />
+      <div className="flex gap-1 border-b">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium cursor-pointer transition-all duration-200 border-b-2 -mb-px ${
+              activeTab === tab.id
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            }`}
+          >
+            <tab.icon className="h-4 w-4" />
+            {tab.label}
+            <span className={`text-xs rounded-full px-2 py-0.5 ${
+              activeTab === tab.id
+                ? 'bg-primary/10 text-primary'
+                : 'bg-muted text-muted-foreground'
+            }`}>
+              {tab.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'contacts' && <ContactsTable contacts={contacts} />}
+      {activeTab === 'orders' && <OrdersTable orders={orders} />}
     </div>
   )
 }
