@@ -25,7 +25,8 @@
       "Bash(docker compose:*)",
       "Bash(bun:*)",
       "Bash(curl -s http://localhost:3001/api/services/md3w/orders)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\([{''''id'''':x[''''id''''],''''priority'''':x.get\\(''''priority''''\\)} for x in d[:3]], indent=2\\)\\)\")"
     ]
   }
 }
