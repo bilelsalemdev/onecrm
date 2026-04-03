@@ -52,7 +52,7 @@ interface CardDetailDialogProps {
 
 export function CardDetailDialog({ open, onOpenChange, item, serviceId, type, onUpdated }: CardDetailDialogProps) {
   const [status, setStatus] = useState<ReviewStatus>('to-review')
-  const [priority, setPriority] = useState<Priority>('medium')
+  const [priority, setPriority] = useState<Priority | ''>('')
   const [assignees, setAssignees] = useState<string[]>([])
   const [newAssignee, setNewAssignee] = useState('')
   const [note, setNote] = useState('')
@@ -61,7 +61,7 @@ export function CardDetailDialog({ open, onOpenChange, item, serviceId, type, on
   useEffect(() => {
     if (item && open) {
       setStatus(item.reviewStatus ?? 'to-review')
-      setPriority(item.priority ?? 'medium')
+      setPriority(item.priority ?? '')
       setAssignees(item.assignees ?? (item.assignedTo ? [item.assignedTo] : []))
       setNote(item.note ?? '')
       setNewAssignee('')
@@ -90,7 +90,7 @@ export function CardDetailDialog({ open, onOpenChange, item, serviceId, type, on
     try {
       await updateReview(serviceId, type, String(item.id), {
         reviewStatus: status,
-        priority,
+        ...(priority ? { priority: priority as Priority } : {}),
         assignees,
         note,
       })
@@ -103,7 +103,7 @@ export function CardDetailDialog({ open, onOpenChange, item, serviceId, type, on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg">
             {contact ? contact.name : order?.customerName}
@@ -129,9 +129,14 @@ export function CardDetailDialog({ open, onOpenChange, item, serviceId, type, on
                   </div>
                 )}
                 {contact.message && (
-                  <div className="flex items-start gap-2 text-sm">
-                    <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <span className="text-muted-foreground">{contact.message}</span>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MessageSquare className="h-4 w-4" />
+                      <span className="font-medium">Message</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground bg-background rounded-md p-2.5 max-h-32 overflow-y-auto whitespace-pre-wrap">
+                      {contact.message}
+                    </p>
                   </div>
                 )}
               </>
@@ -181,11 +186,14 @@ export function CardDetailDialog({ open, onOpenChange, item, serviceId, type, on
 
             <div className="space-y-2">
               <Label>Priority</Label>
-              <Select value={priority} onValueChange={(v) => { if (v) setPriority(v as Priority) }}>
+              <Select value={priority || '__none__'} onValueChange={(v) => { if (v != null) setPriority(v === '__none__' ? '' : v as Priority) }}>
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder="No priority" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__none__">
+                    <span className="text-muted-foreground">No priority</span>
+                  </SelectItem>
                   {PRIORITY_OPTIONS.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       <span className="flex items-center gap-2">
