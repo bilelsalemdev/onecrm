@@ -387,7 +387,7 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
 
         <DragOverlay dropAnimation={{ duration: 150, easing: 'ease' }}>
           {activeItem ? (
-            <Card className="p-3 shadow-xl ring-2 ring-primary/20 opacity-95 w-[var(--dnd-overlay-width)]">
+            <Card className="p-3 shadow-xl ring-2 ring-primary/20 opacity-95">
               <CardOverlayContent item={activeItem} />
             </Card>
           ) : null}
