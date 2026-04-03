@@ -1,7 +1,7 @@
 import { readServices, writeServices } from './storage'
 import { stripCredentials } from '@onecrm/shared'
 import type { ServiceConfig, AuthConfig } from '@onecrm/shared'
-import { proxyContacts, proxyOrders } from './proxy'
+import { proxyContacts, proxyOrders, fetchSampleFields } from './proxy'
 import { mkdir as mkdirNode } from 'fs/promises'
 import { existsSync } from 'fs'
 
@@ -99,6 +99,37 @@ Bun.serve({
         services.push(newService)
         await writeServices(services)
         return json(stripCredentials(newService), 201)
+      }
+
+      // POST /api/services/:id/test-endpoint — fetch sample fields from endpoint
+      const testMatch = urlPath.match(/^\/api\/services\/([^/]+)\/test-endpoint$/)
+      if (testMatch && method === 'POST') {
+        const id = testMatch[1]
+        const services = await readServices()
+        const service = services.find((s) => s.id === id)
+        if (!service) return json({ error: 'Service not found' }, 404)
+
+        const body = await req.json() as { type: 'contacts' | 'orders' }
+        const result = await fetchSampleFields(service, body.type)
+        return json(result)
+      }
+
+      // PUT /api/services/:id/mapping — save field mapping
+      const mappingMatch = urlPath.match(/^\/api\/services\/([^/]+)\/mapping$/)
+      if (mappingMatch && method === 'PUT') {
+        const id = mappingMatch[1]
+        const services = await readServices()
+        const index = services.findIndex((s) => s.id === id)
+        if (index === -1) return json({ error: 'Service not found' }, 404)
+
+        const body = await req.json() as { type: 'contacts' | 'orders'; mapping: Record<string, string> }
+        if (body.type === 'contacts') {
+          services[index].contactsMapping = body.mapping
+        } else {
+          services[index].ordersMapping = body.mapping
+        }
+        await writeServices(services)
+        return json(stripCredentials(services[index]))
       }
 
       // Routes with :id

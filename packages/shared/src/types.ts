@@ -7,6 +7,9 @@ export type AuthConfig =
   | { type: 'basic'; username: string; password: string }
   | { type: 'bearer'; token: string }
 
+// Field mapping: maps our field names to external API field names
+export type FieldMapping = Record<string, string>
+
 // Service — full config (server-side, contains credentials)
 export interface ServiceConfig {
   id: string
@@ -16,6 +19,8 @@ export interface ServiceConfig {
   logo?: string
   endpoint: string
   ordersEndpoint?: string
+  contactsMapping?: FieldMapping
+  ordersMapping?: FieldMapping
   auth: AuthConfig
 }
 
@@ -28,6 +33,8 @@ export interface Service {
   logo?: string
   endpoint: string
   ordersEndpoint?: string
+  contactsMapping?: FieldMapping
+  ordersMapping?: FieldMapping
   authType: AuthType
 }
 
@@ -81,6 +88,8 @@ export function stripCredentials(config: ServiceConfig): Service {
     logo: config.logo,
     endpoint: config.endpoint,
     ordersEndpoint: config.ordersEndpoint,
+    contactsMapping: config.contactsMapping,
+    ordersMapping: config.ordersMapping,
     authType: config.auth.type,
   }
 }

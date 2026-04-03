@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'react-router'
 import { getService, getContacts, getOrders } from '@/services/api'
 import { ContactsTable } from '@/components/services/ContactsTable'
 import { OrdersTable } from '@/components/services/OrdersTable'
+import { MappingDialog } from '@/components/services/MappingDialog'
+import { Button } from '@/components/ui/button'
 import type { Service, Contact, Order } from '@onecrm/shared'
-import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield, Mail, ShoppingCart } from 'lucide-react'
+import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield, Mail, ShoppingCart, Settings2 } from 'lucide-react'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield,
@@ -18,13 +20,18 @@ export function ServiceDetail() {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [activeTab, setActiveTab] = useState<Tab>('contacts')
+  const [mappingOpen, setMappingOpen] = useState(false)
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     if (!serviceId) return
     getService(serviceId).then(setService)
     getContacts(serviceId).then(setContacts)
     getOrders(serviceId).then(setOrders)
   }, [serviceId])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   if (!service) {
     return (
@@ -51,38 +58,58 @@ export function ServiceDetail() {
             <Icon className="h-7 w-7 text-primary" />
           </div>
         )}
-        <div>
+        <div className="flex-1">
           <h2 className="text-2xl font-bold tracking-tight">{service.name}</h2>
           <p className="text-muted-foreground">{service.description}</p>
         </div>
       </div>
 
-      <div className="flex gap-1 border-b">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium cursor-pointer transition-all duration-200 border-b-2 -mb-px ${
-              activeTab === tab.id
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-            }`}
-          >
-            <tab.icon className="h-4 w-4" />
-            {tab.label}
-            <span className={`text-xs rounded-full px-2 py-0.5 ${
-              activeTab === tab.id
-                ? 'bg-primary/10 text-primary'
-                : 'bg-muted text-muted-foreground'
-            }`}>
-              {tab.count}
-            </span>
-          </button>
-        ))}
+      <div className="flex items-center justify-between border-b">
+        <div className="flex gap-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium cursor-pointer transition-all duration-200 border-b-2 -mb-px ${
+                activeTab === tab.id
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              }`}
+            >
+              <tab.icon className="h-4 w-4" />
+              {tab.label}
+              <span className={`text-xs rounded-full px-2 py-0.5 ${
+                activeTab === tab.id
+                  ? 'bg-primary/10 text-primary'
+                  : 'bg-muted text-muted-foreground'
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setMappingOpen(true)}
+          className="mb-1"
+        >
+          <Settings2 className="mr-2 h-3.5 w-3.5" />
+          Map Fields
+        </Button>
       </div>
 
       {activeTab === 'contacts' && <ContactsTable contacts={contacts} />}
       {activeTab === 'orders' && <OrdersTable orders={orders} />}
+
+      <MappingDialog
+        open={mappingOpen}
+        onOpenChange={setMappingOpen}
+        serviceId={service.id}
+        type={activeTab}
+        existingMapping={activeTab === 'contacts' ? service.contactsMapping : service.ordersMapping}
+        onSaved={loadData}
+      />
     </div>
   )
 }

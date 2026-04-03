@@ -1,6 +1,7 @@
 export {
   type AuthType,
   type AuthConfig,
+  type FieldMapping,
   type ServiceConfig,
   type Service,
   type ServiceFormData,

@@ -1,4 +1,4 @@
-import type { Service, Contact, Order, ServiceFormData } from '@onecrm/shared'
+import type { Service, Contact, Order, ServiceFormData, FieldMapping } from '@onecrm/shared'
 
 const API = '/api'
 
@@ -77,4 +77,18 @@ export async function uploadLogo(serviceId: string, file: File): Promise<Service
   })
   if (!res.ok) throw new Error('Logo upload failed')
   return res.json() as Promise<Service>
+}
+
+export async function testEndpoint(serviceId: string, type: 'contacts' | 'orders'): Promise<{ fields: string[]; sample: Record<string, unknown> }> {
+  return request(`/services/${serviceId}/test-endpoint`, {
+    method: 'POST',
+    body: JSON.stringify({ type }),
+  })
+}
+
+export async function saveMapping(serviceId: string, type: 'contacts' | 'orders', mapping: FieldMapping): Promise<Service> {
+  return request<Service>(`/services/${serviceId}/mapping`, {
+    method: 'PUT',
+    body: JSON.stringify({ type, mapping }),
+  })
 }
