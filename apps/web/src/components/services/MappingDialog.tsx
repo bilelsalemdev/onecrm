@@ -121,10 +121,60 @@ export function MappingDialog({ open, onOpenChange, serviceId, type, existingMap
         </DialogHeader>
 
         {!fetched ? (
-          <div className="flex flex-col items-center gap-4 py-8">
-            <p className="text-sm text-muted-foreground text-center">
-              Click below to fetch a sample record from the {type} endpoint and configure field mapping.
-            </p>
+          <div className="flex flex-col items-center gap-5 py-6">
+            <div className="w-full rounded-lg border border-dashed border-primary/30 bg-primary/5 p-4 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary/70">How it works</p>
+              <p className="text-sm text-muted-foreground">
+                External APIs often use different field names. This tool lets you map them to OneCRM's structure.
+              </p>
+              <div className="rounded-md bg-background p-3 space-y-2 text-xs">
+                <p className="font-medium text-foreground/80">Example: your API returns</p>
+                <pre className="text-muted-foreground bg-muted/50 rounded px-2 py-1.5 overflow-x-auto">{type === 'contacts'
+  ? `{ "full_name": "Ahmed", "mail": "ahmed@co.dz", "tel": "+213..." }`
+  : `{ "client": "Ahmed", "total_price": 150, "order_date": "2026-01-15" }`}</pre>
+                <p className="font-medium text-foreground/80 pt-1">You map it like this:</p>
+                <div className="space-y-1">
+                  {type === 'contacts' ? (
+                    <>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="font-medium text-foreground/70 w-16">Name</span>
+                        <ArrowRight className="h-3 w-3 shrink-0" />
+                        <span className="bg-muted/50 rounded px-1.5 py-0.5 font-mono">full_name</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="font-medium text-foreground/70 w-16">Email</span>
+                        <ArrowRight className="h-3 w-3 shrink-0" />
+                        <span className="bg-muted/50 rounded px-1.5 py-0.5 font-mono">mail</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="font-medium text-foreground/70 w-16">Phone</span>
+                        <ArrowRight className="h-3 w-3 shrink-0" />
+                        <span className="bg-muted/50 rounded px-1.5 py-0.5 font-mono">tel</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="font-medium text-foreground/70 w-28">Customer Name</span>
+                        <ArrowRight className="h-3 w-3 shrink-0" />
+                        <span className="bg-muted/50 rounded px-1.5 py-0.5 font-mono">client</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="font-medium text-foreground/70 w-28">Amount</span>
+                        <ArrowRight className="h-3 w-3 shrink-0" />
+                        <span className="bg-muted/50 rounded px-1.5 py-0.5 font-mono">total_price</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <span className="font-medium text-foreground/70 w-28">Date</span>
+                        <ArrowRight className="h-3 w-3 shrink-0" />
+                        <span className="bg-muted/50 rounded px-1.5 py-0.5 font-mono">order_date</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {error && (
               <div className="flex items-center gap-2 text-destructive text-sm">
                 <AlertCircle className="h-4 w-4" />
@@ -138,7 +188,7 @@ export function MappingDialog({ open, onOpenChange, serviceId, type, existingMap
                   Fetching...
                 </>
               ) : (
-                'Fetch Sample'
+                'Fetch Sample & Start Mapping'
               )}
             </Button>
           </div>
