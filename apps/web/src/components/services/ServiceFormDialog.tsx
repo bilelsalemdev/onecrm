@@ -59,6 +59,7 @@ export function ServiceFormDialog({
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [icon, setIcon] = useState("Globe")
+  const [color, setColor] = useState("")
   const [endpoint, setEndpoint] = useState("")
   const [ordersEndpoint, setOrdersEndpoint] = useState("")
   const [authType, setAuthType] = useState<AuthType>("none")
@@ -77,6 +78,7 @@ export function ServiceFormDialog({
       setName(editingService.name)
       setDescription(editingService.description)
       setIcon(editingService.icon)
+      setColor(editingService.color ?? "")
       setEndpoint(editingService.endpoint)
       setOrdersEndpoint(editingService.ordersEndpoint ?? "")
       setAuthType(editingService.authType)
@@ -94,6 +96,7 @@ export function ServiceFormDialog({
       setName("")
       setDescription("")
       setIcon("Globe")
+      setColor("")
       setEndpoint("")
       setOrdersEndpoint("")
       setAuthType("none")
@@ -128,9 +131,9 @@ export function ServiceFormDialog({
     try {
       let result: Service
       if (editingService) {
-        result = await updateService(editingService.id, { name, description, icon, endpoint, ordersEndpoint: ordersEndpoint || undefined, auth: buildAuthConfig() })
+        result = await updateService(editingService.id, { name, description, icon, color: color || undefined, endpoint, ordersEndpoint: ordersEndpoint || undefined, auth: buildAuthConfig() })
       } else {
-        result = await createService({ name, description, icon, endpoint, ordersEndpoint: ordersEndpoint || undefined, auth: buildAuthConfig() })
+        result = await createService({ name, description, icon, color: color || undefined, endpoint, ordersEndpoint: ordersEndpoint || undefined, auth: buildAuthConfig() })
       }
       if (logoFile) {
         await uploadLogo(result.id, logoFile)
@@ -166,6 +169,35 @@ export function ServiceFormDialog({
               onChange={(e) => setName(e.target.value)}
               required
             />
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Brand Color</Label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { value: '#ef4444', label: 'Red' },
+                { value: '#f97316', label: 'Orange' },
+                { value: '#eab308', label: 'Yellow' },
+                { value: '#22c55e', label: 'Green' },
+                { value: '#06b6d4', label: 'Cyan' },
+                { value: '#3b82f6', label: 'Blue' },
+                { value: '#8b5cf6', label: 'Purple' },
+                { value: '#ec4899', label: 'Pink' },
+                { value: '#6b7280', label: 'Gray' },
+                { value: '#0f172a', label: 'Dark' },
+              ].map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  title={c.label}
+                  onClick={() => setColor(color === c.value ? '' : c.value)}
+                  className={`h-7 w-7 rounded-full cursor-pointer transition-all duration-150 ring-offset-2 ring-offset-background ${
+                    color === c.value ? 'ring-2 ring-foreground scale-110' : 'hover:scale-110'
+                  }`}
+                  style={{ backgroundColor: c.value }}
+                />
+              ))}
+            </div>
           </div>
 
           <div className="grid gap-2">

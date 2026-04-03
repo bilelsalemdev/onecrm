@@ -53,12 +53,21 @@ export function ServiceDetail() {
         {service.logo ? (
           <img src={service.logo} alt={service.name} className="h-14 w-14 rounded-xl object-cover shadow-sm" />
         ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5">
-            <Icon className="h-7 w-7 text-primary" />
+          <div
+            className="flex h-14 w-14 items-center justify-center rounded-xl ring-1"
+            style={service.color
+              ? { backgroundColor: service.color + '15', borderColor: service.color + '30' }
+              : undefined
+            }
+          >
+            <span style={{ color: service.color ?? undefined }}><Icon className="h-7 w-7" /></span>
           </div>
         )}
         <div className="flex-1">
-          <h2 className="text-2xl font-bold tracking-tight">{service.name}</h2>
+          <div className="flex items-center gap-2.5">
+            {service.color && <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: service.color }} />}
+            <h2 className="text-2xl font-bold tracking-tight">{service.name}</h2>
+          </div>
           <p className="text-muted-foreground">{service.description}</p>
         </div>
       </div>

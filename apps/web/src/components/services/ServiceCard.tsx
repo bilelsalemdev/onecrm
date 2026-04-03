@@ -24,14 +24,23 @@ export function ServiceCard({ service, onEdit, onDelete }: ServiceCardProps) {
       className="animate-fade-in-up group cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 hover:border-primary/20 overflow-hidden relative"
       onClick={() => navigate(`/services/${service.id}`)}
     >
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      <div
+        className="absolute inset-x-0 top-0 h-1 rounded-t-xl"
+        style={{ backgroundColor: service.color ?? 'transparent' }}
+      />
       <CardHeader className="flex flex-row items-start gap-4 pb-3">
         <div className="flex items-start gap-4 flex-1 min-w-0">
           {service.logo ? (
             <img src={service.logo} alt={service.name} className="h-14 w-14 rounded-xl object-cover shadow-sm ring-1 ring-border" />
           ) : (
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 ring-1 ring-primary/10">
-              <Icon className="h-7 w-7 text-primary" />
+            <div
+              className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl ring-1"
+              style={service.color
+                ? { backgroundColor: service.color + '15', borderColor: service.color + '30' }
+                : undefined
+              }
+            >
+              <span style={{ color: service.color ?? undefined }}><Icon className="h-7 w-7" /></span>
             </div>
           )}
           <div className="min-w-0">

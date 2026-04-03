@@ -16,6 +16,7 @@ export interface ServiceConfig {
   name: string
   description: string
   icon: string
+  color?: string
   logo?: string
   endpoint: string
   ordersEndpoint?: string
@@ -30,6 +31,7 @@ export interface Service {
   name: string
   description: string
   icon: string
+  color?: string
   logo?: string
   endpoint: string
   ordersEndpoint?: string
@@ -43,6 +45,7 @@ export interface ServiceFormData {
   name: string
   description: string
   icon: string
+  color?: string
   logo?: string
   endpoint: string
   ordersEndpoint?: string
@@ -112,6 +115,7 @@ export function stripCredentials(config: ServiceConfig): Service {
     name: config.name,
     description: config.description,
     icon: config.icon,
+    color: config.color,
     logo: config.logo,
     endpoint: config.endpoint,
     ordersEndpoint: config.ordersEndpoint,
