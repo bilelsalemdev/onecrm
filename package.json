@@ -1,7 +1,9 @@
 {
   "name": "onecrm",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
   "private": true,
-  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "concurrently \"bun run dev:server\" \"bun run dev:web\"",
     "dev:web": "bun --filter @onecrm/web dev",
@@ -9,12 +11,8 @@
     "build": "bun --filter @onecrm/web build",
     "start": "bun --filter @onecrm/server start"
   },
-  "devDependencies": {
-    "concurrently": "^9.2.1"
-  },
+  "workspaces": ["apps/*", "packages/*"],
   "dependencies": {
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2"
+    "@hello-pangea/dnd": "^18.0.1"
   }
 }
