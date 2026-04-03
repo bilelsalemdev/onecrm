@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   DndContext,
   PointerSensor,
@@ -254,9 +254,9 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
   const [detailOpen, setDetailOpen] = useState(false)
 
   // Sync when parent items change
-  if (items !== localItems && !overColumnId) {
+  useEffect(() => {
     setLocalItems(items)
-  }
+  }, [items])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
