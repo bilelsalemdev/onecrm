@@ -3,20 +3,35 @@ services:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
+    container_name: onecrm-server
     ports:
-      - "3001:3001"
+      - "${SERVER_PORT:-3001}:3001"
     volumes:
       - server-data:/app/apps/server/data
+    healthcheck:
+      test: ["CMD", "bun", "-e", "fetch('http://localhost:3001/api/services').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+    container_name: onecrm-web
     ports:
-      - "3000:80"
+      - "${WEB_PORT:-3000}:80"
     depends_on:
-      - server
+      server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
 volumes:

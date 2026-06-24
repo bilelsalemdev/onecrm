@@ -25,3 +25,6 @@ dist-ssr
 
 # Service config data (contains credentials)
 data/
+
+# Local environment overrides (ports, secrets). Commit .env.example instead.
+.env

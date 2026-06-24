@@ -13,6 +13,9 @@ RUN bun install
 COPY packages/shared/ packages/shared/
 COPY apps/server/ apps/server/
 
+# Seed script (run via `make seed`)
+COPY scripts/ /app/scripts/
+
 WORKDIR /app/apps/server
 
 EXPOSE 3001
