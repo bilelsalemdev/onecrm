@@ -27,25 +27,23 @@ const PRIORITY: Record<string, string> = {
   urgent: 'text-lamp-red',
 }
 
-function isContact(item: ReviewableItem): item is ReviewableContact {
-  return 'email' in item && 'phone' in item && 'message' in item
-}
-
 // --- Kanban Card ---
 
 function KanbanCard({
   item,
+  type,
   onDragStart,
   onDragEnd,
   onClick,
 }: {
   item: ReviewableItem
+  type: 'contacts' | 'orders'
   onDragStart: (e: React.DragEvent, item: ReviewableItem) => void
   onDragEnd: (e: React.DragEvent) => void
   onClick: (item: ReviewableItem) => void
 }) {
-  const contact = isContact(item) ? item : null
-  const order = !isContact(item) ? item : null
+  const contact = type === 'contacts' ? (item as ReviewableContact) : null
+  const order = type === 'orders' ? (item as ReviewableOrder) : null
   const allAssignees = item.assignees ?? (item.assignedTo ? [item.assignedTo] : [])
   const prioClass = item.priority ? PRIORITY[item.priority] : undefined
 
@@ -226,6 +224,7 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
                     <KanbanCard
                       key={String(item.id)}
                       item={item}
+                      type={type}
                       onDragStart={handleDragStart}
                       onDragEnd={handleCardDragEnd}
                       onClick={(item) => { setDetailItem(item); setDetailOpen(true) }}

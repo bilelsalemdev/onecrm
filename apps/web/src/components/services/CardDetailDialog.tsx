@@ -25,10 +25,6 @@ import { Mail, Phone, MessageSquare, Package, DollarSign, Calendar, UserPlus, X,
 
 type ReviewableItem = ReviewableContact | ReviewableOrder
 
-function isContact(item: ReviewableItem): item is ReviewableContact {
-  return 'email' in item && 'phone' in item && 'message' in item
-}
-
 const STATUS_OPTIONS: { value: ReviewStatus; label: string; color: string }[] = [
   { value: 'to-review', label: 'To review', color: 'bg-lamp-red text-lamp-red' },
   { value: 'under-review', label: 'Under review', color: 'bg-lamp-amber text-lamp-amber' },
@@ -71,8 +67,8 @@ export function CardDetailDialog({ open, onOpenChange, item, serviceId, type, on
 
   if (!item) return null
 
-  const contact = isContact(item) ? item : null
-  const order = !isContact(item) ? item : null
+  const contact = type === 'contacts' ? (item as ReviewableContact) : null
+  const order = type === 'orders' ? (item as ReviewableOrder) : null
 
   function addAssignee() {
     const email = newAssignee.trim()
