@@ -1,27 +1,21 @@
-import { Card, CardContent } from '@/components/ui/card'
 import type { LucideIcon } from 'lucide-react'
 
 interface StatsCardProps {
   title: string
   value: string | number
   icon: LucideIcon
+  hint?: string
 }
 
-export function StatsCard({ title, value, icon: Icon }: StatsCardProps) {
+export function StatsCard({ title, value, icon: Icon, hint }: StatsCardProps) {
   return (
-    <Card className="animate-fade-in-up overflow-hidden relative">
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/70">{title}</p>
-            <p className="mt-2 text-3xl font-bold tracking-tight">{value}</p>
-          </div>
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/8 ring-1 ring-primary/10">
-            <Icon className="h-5 w-5 text-primary" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="rounded-lg border border-border bg-card px-5 py-4">
+      <div className="flex items-center justify-between">
+        <p className="eyebrow">{title}</p>
+        <Icon className="h-3.5 w-3.5 text-muted-foreground/50" />
+      </div>
+      <p className="readout mt-3 text-3xl font-medium tracking-tight tabular-nums text-foreground">{value}</p>
+      {hint && <p className="readout mt-1 text-[11px] text-muted-foreground">{hint}</p>}
+    </div>
   )
 }

@@ -1,32 +1,29 @@
 import { useState, useRef } from 'react'
-import { Card } from '@/components/ui/card'
 import { updateReview } from '@/services/api'
 import { CardDetailDialog } from './CardDetailDialog'
 import type { ReviewStatus, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
-import { Package, GripVertical, Flag, Calendar } from 'lucide-react'
+import { Package, GripVertical, Calendar } from 'lucide-react'
 
 type ReviewableItem = ReviewableContact | ReviewableOrder
 
 interface ColumnDef {
   id: ReviewStatus
   title: string
-  color: string
-  bgColor: string
-  dotColor: string
-  borderActive: string
+  lampVar: string
+  lampClass: string
 }
 
 const COLUMNS: ColumnDef[] = [
-  { id: 'to-review', title: 'To Be Reviewed', color: 'text-amber-600', bgColor: 'bg-amber-50', dotColor: 'bg-amber-400', borderActive: 'border-amber-300' },
-  { id: 'under-review', title: 'Under Review', color: 'text-blue-600', bgColor: 'bg-blue-50', dotColor: 'bg-blue-400', borderActive: 'border-blue-300' },
-  { id: 'completed', title: 'Completed', color: 'text-emerald-600', bgColor: 'bg-emerald-50', dotColor: 'bg-emerald-400', borderActive: 'border-emerald-300' },
+  { id: 'to-review', title: 'To review', lampVar: '--lamp-red', lampClass: 'text-lamp-red' },
+  { id: 'under-review', title: 'Under review', lampVar: '--lamp-amber', lampClass: 'text-lamp-amber' },
+  { id: 'completed', title: 'Completed', lampVar: '--lamp-green', lampClass: 'text-lamp-green' },
 ]
 
-const PRIORITY_BADGE: Record<string, { color: string; bg: string }> = {
-  low: { color: 'text-slate-500', bg: 'bg-slate-100' },
-  medium: { color: 'text-blue-500', bg: 'bg-blue-50' },
-  high: { color: 'text-orange-600', bg: 'bg-orange-50' },
-  urgent: { color: 'text-red-600', bg: 'bg-red-50' },
+const PRIORITY: Record<string, string> = {
+  low: 'text-muted-foreground',
+  medium: 'text-primary',
+  high: 'text-lamp-amber',
+  urgent: 'text-lamp-red',
 }
 
 function isContact(item: ReviewableItem): item is ReviewableContact {
@@ -49,7 +46,7 @@ function KanbanCard({
   const contact = isContact(item) ? item : null
   const order = !isContact(item) ? item : null
   const allAssignees = item.assignees ?? (item.assignedTo ? [item.assignedTo] : [])
-  const prio = PRIORITY_BADGE[item.priority ?? '']
+  const prioClass = item.priority ? PRIORITY[item.priority] : undefined
 
   return (
     <div
@@ -57,87 +54,77 @@ function KanbanCard({
       onDragStart={(e) => onDragStart(e, item)}
       onDragEnd={onDragEnd}
       onClick={() => onClick(item)}
-      className="mb-2 cursor-pointer"
+      className="mb-2 cursor-pointer rounded-md border border-border bg-card p-3 transition-colors duration-150 hover:border-foreground/25"
     >
-      <Card className="p-3 hover:shadow-md hover:border-primary/20 transition-all duration-150 active:shadow-lg">
-        <div className="space-y-2">
-          {/* Header: name + grip */}
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold truncate">
-                {contact ? contact.name : order?.customerName}
-              </p>
-              <p className="text-xs text-muted-foreground/60 truncate">
-                {contact ? contact.email : order?.customerEmail}
-              </p>
-            </div>
-            <div className="cursor-grab active:cursor-grabbing p-0.5 rounded hover:bg-muted">
-              <GripVertical className="h-4 w-4 text-muted-foreground/30" />
-            </div>
+      <div className="space-y-2.5">
+        {/* Header: name + grip */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium">{contact ? contact.name : order?.customerName}</p>
+            <p className="readout truncate text-[11px] text-muted-foreground">{contact ? contact.email : order?.customerEmail}</p>
           </div>
+          <GripVertical className="h-4 w-4 shrink-0 cursor-grab text-muted-foreground/30 active:cursor-grabbing" />
+        </div>
 
-          {/* Contact: message */}
-          {contact?.message && (
-            <p className="text-xs text-muted-foreground bg-muted/40 rounded-md px-2 py-1.5 line-clamp-3">
-              {contact.message}
-            </p>
-          )}
+        {/* Contact: message */}
+        {contact?.message && (
+          <p className="line-clamp-3 rounded bg-muted/70 px-2 py-1.5 text-xs leading-relaxed text-muted-foreground">
+            {contact.message}
+          </p>
+        )}
 
-          {/* Order: product + amount */}
-          {order && (
-            <div className="flex items-center justify-between text-xs bg-muted/40 rounded-md px-2 py-1.5">
-              <span className="flex items-center gap-1 text-muted-foreground truncate">
-                <Package className="h-3 w-3 shrink-0" />
-                {order.product}
-              </span>
-              <span className="font-semibold shrink-0 ml-2">
-                {Number(order.amount).toFixed(0)} {order.currency}
-              </span>
-            </div>
-          )}
-
-          {/* Meta row: priority + assignees + date */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {prio && (
-              <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${prio.bg} ${prio.color}`}>
-                <Flag className="h-2.5 w-2.5" />
-                {item.priority}
-              </span>
-            )}
-
-            {allAssignees.length > 0 && (
-              <div className="flex -space-x-1.5">
-                {allAssignees.slice(0, 3).map((email) => (
-                  <div
-                    key={email}
-                    title={email}
-                    className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary ring-2 ring-card"
-                  >
-                    {email[0].toUpperCase()}
-                  </div>
-                ))}
-                {allAssignees.length > 3 && (
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[9px] font-medium text-muted-foreground ring-2 ring-card">
-                    +{allAssignees.length - 3}
-                  </div>
-                )}
-              </div>
-            )}
-
-            <span className="text-[10px] text-muted-foreground/50 ml-auto flex items-center gap-0.5">
-              <Calendar className="h-2.5 w-2.5" />
-              {item.date}
+        {/* Order: product + amount */}
+        {order && (
+          <div className="flex items-center justify-between gap-2 rounded bg-muted/70 px-2 py-1.5 text-xs">
+            <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
+              <Package className="h-3 w-3 shrink-0" />
+              <span className="truncate">{order.product}</span>
+            </span>
+            <span className="readout shrink-0 font-medium text-foreground tabular-nums">
+              {Number(order.amount).toFixed(0)} {order.currency}
             </span>
           </div>
+        )}
 
-          {/* Note preview */}
-          {item.note && (
-            <p className="text-[10px] text-muted-foreground/50 italic line-clamp-1 border-t border-border/30 pt-1.5">
-              {item.note}
-            </p>
+        {/* Meta: priority + assignees + date */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {prioClass && (
+            <span className={`readout inline-flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[10px] uppercase tracking-wide ${prioClass}`}>
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              {item.priority}
+            </span>
           )}
+
+          {allAssignees.length > 0 && (
+            <div className="flex -space-x-1.5">
+              {allAssignees.slice(0, 3).map((email) => (
+                <div
+                  key={email}
+                  title={email}
+                  className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-semibold text-primary ring-2 ring-card"
+                >
+                  {email[0].toUpperCase()}
+                </div>
+              ))}
+              {allAssignees.length > 3 && (
+                <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[9px] font-medium text-muted-foreground ring-2 ring-card">
+                  +{allAssignees.length - 3}
+                </div>
+              )}
+            </div>
+          )}
+
+          <span className="readout ml-auto flex items-center gap-1 text-[10px] tabular-nums text-muted-foreground/60">
+            <Calendar className="h-2.5 w-2.5" />
+            {item.date}
+          </span>
         </div>
-      </Card>
+
+        {/* Note preview */}
+        {item.note && (
+          <p className="line-clamp-1 border-t border-border/60 pt-1.5 text-[11px] italic text-muted-foreground/70">{item.note}</p>
+        )}
+      </div>
     </div>
   )
 }
@@ -162,19 +149,14 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
   }
 
   function handleDragStart(e: React.DragEvent, item: ReviewableItem) {
-    dragItemRef.current = {
-      id: String(item.id),
-      sourceColumn: item.reviewStatus ?? 'to-review',
-    }
+    dragItemRef.current = { id: String(item.id), sourceColumn: item.reviewStatus ?? 'to-review' }
     e.dataTransfer.effectAllowed = 'move'
-    // Make the drag ghost slightly transparent
     const el = e.currentTarget as HTMLElement
     requestAnimationFrame(() => { el.style.opacity = '0.4' })
   }
 
   function handleCardDragEnd(e: React.DragEvent) {
-    const el = e.currentTarget as HTMLElement
-    el.style.opacity = '1'
+    ;(e.currentTarget as HTMLElement).style.opacity = '1'
   }
 
   function handleColumnDragOver(e: React.DragEvent, columnId: ReviewStatus) {
@@ -186,28 +168,23 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
   function handleColumnDragLeave(e: React.DragEvent) {
     const related = e.relatedTarget as HTMLElement | null
     const current = e.currentTarget as HTMLElement
-    if (!related || !current.contains(related)) {
-      setDragOverColumn(null)
-    }
+    if (!related || !current.contains(related)) setDragOverColumn(null)
   }
 
   async function handleColumnDrop(e: React.DragEvent, targetColumn: ReviewStatus) {
     e.preventDefault()
     setDragOverColumn(null)
-
     const drag = dragItemRef.current
     if (!drag) return
     dragItemRef.current = null
-
     if (drag.sourceColumn === targetColumn) return
-
     await updateReview(serviceId, type, drag.id, { reviewStatus: targetColumn })
     onUpdated()
   }
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[400px]">
+      <div className="grid min-h-[420px] grid-cols-1 gap-3 md:grid-cols-3">
         {COLUMNS.map((col) => {
           const colItems = getColumnItems(col.id)
           const isOver = dragOverColumn === col.id
@@ -218,28 +195,28 @@ export function KanbanBoard({ items, serviceId, type, onUpdated }: KanbanBoardPr
               onDragOver={(e) => handleColumnDragOver(e, col.id)}
               onDragLeave={handleColumnDragLeave}
               onDrop={(e) => handleColumnDrop(e, col.id)}
-              className={`rounded-xl border-2 border-dashed p-3 transition-all duration-200 ${
+              className="rounded-lg border border-border bg-muted/25 p-2.5 transition-colors duration-200"
+              style={
                 isOver
-                  ? `${col.borderActive} ${col.bgColor} scale-[1.005]`
-                  : 'border-border/50 bg-muted/20'
-              }`}
+                  ? {
+                      borderColor: `var(${col.lampVar})`,
+                      backgroundColor: `color-mix(in srgb, var(${col.lampVar}) 7%, transparent)`,
+                    }
+                  : undefined
+              }
             >
-              <div className="flex items-center justify-between mb-3 px-1">
-                <div className="flex items-center gap-2">
-                  <div className={`h-2.5 w-2.5 rounded-full ${col.dotColor}`} />
-                  <h3 className={`text-sm font-semibold ${col.color}`}>{col.title}</h3>
+              <div className="mb-3 flex items-center justify-between px-1">
+                <div className={`flex items-center gap-2 ${col.lampClass}`}>
+                  <span className="lamp lamp-sm" />
+                  <span className="eyebrow text-foreground/80">{col.title}</span>
                 </div>
-                <span className="text-xs text-muted-foreground bg-background rounded-full px-2 py-0.5 font-medium shadow-sm">
-                  {colItems.length}
-                </span>
+                <span className="readout text-xs tabular-nums text-muted-foreground">{String(colItems.length).padStart(2, '0')}</span>
               </div>
 
               <div className="min-h-[60px]">
                 {colItems.length === 0 ? (
-                  <div className={`flex items-center justify-center py-8 text-xs transition-colors duration-200 ${
-                    isOver ? col.color : 'text-muted-foreground/40'
-                  }`}>
-                    {isOver ? 'Drop here' : 'No items'}
+                  <div className={`flex items-center justify-center py-9 readout text-[11px] transition-colors duration-200 ${isOver ? col.lampClass : 'text-muted-foreground/40'}`}>
+                    {isOver ? 'Drop here' : 'Empty'}
                   </div>
                 ) : (
                   colItems.map((item) => (

@@ -222,7 +222,7 @@ export function MappingDialog({ open, onOpenChange, serviceId, type, existingMap
                   <div className="flex items-center gap-2">
                     <Label className="text-sm font-medium">{field.label}</Label>
                     {mapping[field.key] && (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+                      <CheckCircle2 className="h-3.5 w-3.5 text-lamp-green" />
                     )}
                   </div>
                   <ArrowRight className="h-4 w-4 text-muted-foreground/50" />

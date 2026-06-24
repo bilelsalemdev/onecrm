@@ -29,16 +29,16 @@ function isContact(item: ReviewableItem): item is ReviewableContact {
 }
 
 const STATUS_OPTIONS: { value: ReviewStatus; label: string; color: string }[] = [
-  { value: 'to-review', label: 'To Be Reviewed', color: 'bg-amber-100 text-amber-700' },
-  { value: 'under-review', label: 'Under Review', color: 'bg-blue-100 text-blue-700' },
-  { value: 'completed', label: 'Completed', color: 'bg-emerald-100 text-emerald-700' },
+  { value: 'to-review', label: 'To review', color: 'bg-lamp-red text-lamp-red' },
+  { value: 'under-review', label: 'Under review', color: 'bg-lamp-amber text-lamp-amber' },
+  { value: 'completed', label: 'Completed', color: 'bg-lamp-green text-lamp-green' },
 ]
 
 const PRIORITY_OPTIONS: { value: Priority; label: string; color: string }[] = [
-  { value: 'low', label: 'Low', color: 'bg-slate-100 text-slate-600' },
-  { value: 'medium', label: 'Medium', color: 'bg-blue-100 text-blue-600' },
-  { value: 'high', label: 'High', color: 'bg-orange-100 text-orange-600' },
-  { value: 'urgent', label: 'Urgent', color: 'bg-red-100 text-red-600' },
+  { value: 'low', label: 'Low', color: 'bg-muted text-muted-foreground' },
+  { value: 'medium', label: 'Medium', color: 'bg-primary/15 text-primary' },
+  { value: 'high', label: 'High', color: 'bg-lamp-amber/15 text-lamp-amber' },
+  { value: 'urgent', label: 'Urgent', color: 'bg-lamp-red/15 text-lamp-red' },
 ]
 
 interface CardDetailDialogProps {
@@ -272,7 +272,7 @@ export function CardDetailDialog({ open, onOpenChange, item, serviceId, type, on
                 Saving...
               </>
             ) : (
-              'Save Changes'
+              'Save changes'
             )}
           </Button>
         </DialogFooter>

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Plus, Building2 } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ServiceCard } from '@/components/services/ServiceCard'
 import { ServiceFormDialog } from '@/components/services/ServiceFormDialog'
@@ -29,7 +29,7 @@ export function Services() {
   }
 
   async function handleDelete(service: Service) {
-    if (!confirm(`Delete "${service.name}"? This cannot be undone.`)) return
+    if (!confirm(`Delete "${service.name}"? This removes the connection and its review history.`)) return
     await deleteService(service.id)
     loadServices()
   }
@@ -41,36 +41,33 @@ export function Services() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between animate-fade-in">
+      <div className="flex items-end justify-between gap-4 animate-fade-in">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Services</h2>
-          <p className="text-muted-foreground/70 mt-1">Manage your connected services and integrations.</p>
+          <p className="eyebrow">Connections</p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight">Services</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Every source feeding contacts and orders into the desk.</p>
         </div>
         <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Service
+          <Plus className="mr-1.5 h-4 w-4" />
+          Add service
         </Button>
       </div>
 
       {services.length === 0 ? (
-        <div className="py-16 text-center animate-fade-in">
-          <div className="flex justify-center mb-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
-              <Building2 className="h-8 w-8 text-muted-foreground/40" />
-            </div>
-          </div>
-          <p className="text-muted-foreground font-medium">No services configured yet</p>
-          <p className="text-sm text-muted-foreground/60 mt-1">Click &quot;Add Service&quot; to get started.</p>
+        <div className="grid-etch flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-20 text-center animate-fade-in">
+          <p className="font-heading text-base font-semibold">No services connected</p>
+          <p className="mt-1.5 max-w-xs text-sm text-muted-foreground">
+            Connect a source to start pulling its contacts and orders into one review queue.
+          </p>
+          <Button variant="outline" className="mt-5" onClick={() => setDialogOpen(true)}>
+            <Plus className="mr-1.5 h-4 w-4" />
+            Add your first service
+          </Button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 animate-fade-in sm:grid-cols-2 lg:grid-cols-3">
           {services.map((service) => (
-            <ServiceCard
-              key={service.id}
-              service={service}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
+            <ServiceCard key={service.id} service={service} onEdit={handleEdit} onDelete={handleDelete} />
           ))}
         </div>
       )}

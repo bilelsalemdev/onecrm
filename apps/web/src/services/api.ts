@@ -1,4 +1,4 @@
-import type { Service, Contact, ServiceFormData, FieldMapping, ReviewStatus, Priority, ReviewMeta, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
+import type { Service, ServiceFormData, FieldMapping, ReviewStatus, Priority, ReviewMeta, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
 
 const API = '/api'
 
@@ -54,7 +54,7 @@ export async function updateReview(
   })
 }
 
-export async function getAllContacts(): Promise<Contact[]> {
+export async function getAllContacts(): Promise<ReviewableContact[]> {
   const services = await getServices()
   const results = await Promise.allSettled(
     services.map((s) => getContacts(s.id))

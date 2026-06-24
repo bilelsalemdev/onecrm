@@ -1,5 +1,4 @@
 import { Link } from 'react-router'
-import { Card, CardContent } from '@/components/ui/card'
 import type { Service } from '@onecrm/shared'
 import { Globe, Sparkles, TrendingUp, Award, Building, Store, Landmark, Heart, Zap, Shield, ArrowUpRight } from 'lucide-react'
 
@@ -11,32 +10,28 @@ export function ServiceSummaryCard({ service }: { service: Service }) {
   const Icon = iconMap[service.icon] ?? Globe
 
   return (
-    <Link to={`/services/${service.id}`}>
-      <Card className="animate-fade-in-up cursor-pointer group transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/20 overflow-hidden relative">
-        {service.color && (
-          <div className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: service.color }} />
-        )}
-        <CardContent className="flex items-center gap-4 p-4">
-          {service.logo ? (
-            <img src={service.logo} alt={service.name} className="h-10 w-10 rounded-lg object-cover ring-1 ring-border" />
-          ) : (
-            <div
-              className="flex h-10 w-10 items-center justify-center rounded-lg ring-1"
-              style={service.color
-                ? { backgroundColor: service.color + '15', borderColor: service.color + '30' }
-                : undefined
-              }
-            >
-              <span style={{ color: service.color ?? undefined }}><Icon className="h-5 w-5" /></span>
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate">{service.name}</p>
-            <p className="text-xs text-muted-foreground/70 truncate">{service.description}</p>
+    <Link to={`/services/${service.id}`} className="group block">
+      <div className="relative flex items-center gap-3.5 overflow-hidden rounded-lg border border-border bg-card px-4 py-3.5 transition-colors duration-150 hover:border-foreground/20 hover:bg-accent/40">
+        <span
+          className="absolute inset-y-0 left-0 w-1"
+          style={{ backgroundColor: service.color ?? 'var(--border)' }}
+        />
+        {service.logo ? (
+          <img src={service.logo} alt={service.name} className="h-9 w-9 rounded-md object-cover ring-1 ring-border" />
+        ) : (
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md ring-1 ring-inset ring-border"
+            style={service.color ? { backgroundColor: service.color + '14', borderColor: service.color + '33' } : undefined}
+          >
+            <span style={{ color: service.color ?? undefined }}><Icon className="h-5 w-5" /></span>
           </div>
-          <ArrowUpRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary transition-colors duration-200" />
-        </CardContent>
-      </Card>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{service.name}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{service.description}</p>
+        </div>
+        <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground/30 transition-colors duration-150 group-hover:text-primary" />
+      </div>
     </Link>
   )
 }
