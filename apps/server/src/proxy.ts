@@ -144,7 +144,16 @@ function applyMapping(records: unknown[], mapping: FieldMapping | undefined): un
     const mapped: Record<string, unknown> = {}
 
     for (const [ourField, externalField] of Object.entries(mapping)) {
-      if (externalField && externalField in source) {
+      if (!externalField) continue
+      if (externalField.includes(' ')) {
+        // Join several source fields, e.g. "firstName lastName" -> "Ada Lovelace"
+        const joined = externalField
+          .split(/\s+/)
+          .map((f) => source[f])
+          .filter((v) => v != null && v !== '')
+          .join(' ')
+        if (joined) mapped[ourField] = joined
+      } else if (externalField in source) {
         mapped[ourField] = source[externalField]
       }
     }
