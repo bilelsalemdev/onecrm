@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { updateReview } from '@/services/api'
+import { formatAmount, formatDate } from '@/lib/utils'
 import type { ReviewStatus, Priority, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
 import { Mail, Phone, MessageSquare, Package, DollarSign, Calendar, UserPlus, X, Loader2, Flag } from 'lucide-react'
 
@@ -151,15 +152,17 @@ export function CardDetailDialog({ open, onOpenChange, item, serviceId, type, on
                   <Package className="h-4 w-4 text-muted-foreground" />
                   <span>{order.product}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span>{Number(order.amount).toFixed(2)} {order.currency}</span>
-                </div>
+                {formatAmount(order.amount, order.currency) && (
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span>{formatAmount(order.amount, order.currency)}</span>
+                  </div>
+                )}
               </>
             )}
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Calendar className="h-4 w-4" />
-              <span>{item.date}</span>
+              <span>{formatDate(item.date)}</span>
             </div>
           </div>
 

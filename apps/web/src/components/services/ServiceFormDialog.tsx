@@ -38,9 +38,10 @@ const ICON_OPTIONS = [
 
 const AUTH_TYPE_OPTIONS: { value: AuthType; label: string }[] = [
   { value: "none", label: "None" },
-  { value: "api-key", label: "API Key" },
-  { value: "basic", label: "Basic Auth" },
-  { value: "bearer", label: "Bearer Token" },
+  { value: "login", label: "Login (JWT)" },
+  { value: "bearer", label: "Bearer token" },
+  { value: "api-key", label: "API key" },
+  { value: "basic", label: "Basic auth" },
 ]
 
 interface ServiceFormDialogProps {
@@ -62,12 +63,17 @@ export function ServiceFormDialog({
   const [color, setColor] = useState("")
   const [endpoint, setEndpoint] = useState("")
   const [ordersEndpoint, setOrdersEndpoint] = useState("")
+  const [resultsPath, setResultsPath] = useState("")
   const [authType, setAuthType] = useState<AuthType>("none")
   const [apiKey, setApiKey] = useState("")
   const [headerName, setHeaderName] = useState("X-API-Key")
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [token, setToken] = useState("")
+  // login auth
+  const [loginUrl, setLoginUrl] = useState("")
+  const [usernameField, setUsernameField] = useState("email")
+  const [tokenPath, setTokenPath] = useState("")
   const [logoMode, setLogoMode] = useState<'icon' | 'upload'>('icon')
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -81,30 +87,37 @@ export function ServiceFormDialog({
       setColor(editingService.color ?? "")
       setEndpoint(editingService.endpoint)
       setOrdersEndpoint(editingService.ordersEndpoint ?? "")
+      setResultsPath(editingService.resultsPath ?? "")
       setAuthType(editingService.authType)
-      // Leave credential fields empty for editing
+      // Leave credential fields empty for editing (server preserves blanks)
       setApiKey("")
       setHeaderName("X-API-Key")
       setUsername("")
       setPassword("")
       setToken("")
+      setLoginUrl("")
+      setUsernameField("email")
+      setTokenPath("")
       setLogoFile(null)
       setLogoPreview(editingService?.logo ?? null)
       setLogoMode(editingService?.logo ? 'upload' : 'icon')
     } else if (open) {
-      // Reset all fields for fresh dialog
       setName("")
       setDescription("")
       setIcon("Globe")
       setColor("")
       setEndpoint("")
       setOrdersEndpoint("")
+      setResultsPath("")
       setAuthType("none")
       setApiKey("")
       setHeaderName("X-API-Key")
       setUsername("")
       setPassword("")
       setToken("")
+      setLoginUrl("")
+      setUsernameField("email")
+      setTokenPath("")
       setLogoFile(null)
       setLogoPreview(null)
       setLogoMode('icon')
@@ -119,6 +132,15 @@ export function ServiceFormDialog({
         return { type: "basic", username, password }
       case "bearer":
         return { type: "bearer", token }
+      case "login":
+        return {
+          type: "login",
+          loginUrl,
+          username,
+          password,
+          usernameField: usernameField.trim() || undefined,
+          tokenPath: tokenPath.trim() || undefined,
+        }
       case "none":
       default:
         return { type: "none" }
@@ -129,12 +151,19 @@ export function ServiceFormDialog({
     e.preventDefault()
     setSubmitting(true)
     try {
-      let result: Service
-      if (editingService) {
-        result = await updateService(editingService.id, { name, description, icon, color: color || undefined, endpoint, ordersEndpoint: ordersEndpoint || undefined, auth: buildAuthConfig() })
-      } else {
-        result = await createService({ name, description, icon, color: color || undefined, endpoint, ordersEndpoint: ordersEndpoint || undefined, auth: buildAuthConfig() })
+      const payload = {
+        name,
+        description,
+        icon,
+        color: color || undefined,
+        endpoint,
+        ordersEndpoint: ordersEndpoint || undefined,
+        resultsPath: resultsPath.trim() || undefined,
+        auth: buildAuthConfig(),
       }
+      const result: Service = editingService
+        ? await updateService(editingService.id, payload)
+        : await createService(payload)
       if (logoFile) {
         await uploadLogo(result.id, logoFile)
       }
@@ -146,17 +175,17 @@ export function ServiceFormDialog({
   }
 
   const isEditing = !!editingService
-  const credentialPlaceholder = isEditing ? "••••••••" : undefined
+  const credentialPlaceholder = isEditing ? "•••••••• (unchanged)" : undefined
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Service" : "Add Service"}</DialogTitle>
+          <DialogTitle>{isEditing ? "Edit service" : "Add service"}</DialogTitle>
           <DialogDescription>
             {isEditing
-              ? "Update the service configuration."
-              : "Configure a new service connection."}
+              ? "Update how this source connects and authenticates."
+              : "Connect a source so its contacts and orders flow into the desk."}
           </DialogDescription>
         </DialogHeader>
 
@@ -172,7 +201,7 @@ export function ServiceFormDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label>Brand Color</Label>
+            <Label>Brand color</Label>
             <div className="flex flex-wrap gap-2">
               {[
                 { value: '#ef4444', label: 'Red' },
@@ -201,14 +230,14 @@ export function ServiceFormDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label>Service Image</Label>
-            <div className="flex gap-1 rounded-lg border p-1 w-fit">
+            <Label>Service image</Label>
+            <div className="flex gap-1 rounded-lg border border-border p-1 w-fit">
               <button
                 type="button"
                 onClick={() => setLogoMode('icon')}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                   logoMode === 'icon'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
@@ -220,22 +249,17 @@ export function ServiceFormDialog({
                 onClick={() => setLogoMode('upload')}
                 className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
                   logoMode === 'upload'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
                 <ImageIcon className="h-3.5 w-3.5" />
-                Upload Logo
+                Upload logo
               </button>
             </div>
 
             {logoMode === 'icon' ? (
-              <Select
-                value={icon}
-                onValueChange={(value) => {
-                  if (value != null) setIcon(value)
-                }}
-              >
+              <Select value={icon} onValueChange={(value) => { if (value != null) setIcon(value) }}>
                 <SelectTrigger className="w-full cursor-pointer">
                   <SelectValue />
                 </SelectTrigger>
@@ -250,7 +274,7 @@ export function ServiceFormDialog({
             ) : (
               <div className="flex items-center gap-4">
                 {logoPreview && (
-                  <img src={logoPreview} alt="Logo preview" className="h-12 w-12 rounded-lg object-cover border shadow-sm" />
+                  <img src={logoPreview} alt="Logo preview" className="h-12 w-12 rounded-md object-cover border border-border" />
                 )}
                 <Input
                   type="file"
@@ -279,36 +303,44 @@ export function ServiceFormDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="service-endpoint">Contacts Endpoint URL</Label>
+            <Label htmlFor="service-endpoint">Contacts endpoint URL</Label>
             <Input
               id="service-endpoint"
               type="url"
               value={endpoint}
               onChange={(e) => setEndpoint(e.target.value)}
-              placeholder="https://example.com/api/contacts"
+              placeholder="https://api.example.com/api/v1/customers"
               required
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="service-orders-endpoint">Orders Endpoint URL (optional)</Label>
+            <Label htmlFor="service-orders-endpoint">Orders endpoint URL (optional)</Label>
             <Input
               id="service-orders-endpoint"
               type="url"
               value={ordersEndpoint}
               onChange={(e) => setOrdersEndpoint(e.target.value)}
-              placeholder="https://example.com/api/orders"
+              placeholder="https://api.example.com/api/v1/orders"
             />
           </div>
 
           <div className="grid gap-2">
-            <Label>Auth Type</Label>
-            <Select
-              value={authType}
-              onValueChange={(value) => {
-                if (value != null) setAuthType(value as AuthType)
-              }}
-            >
+            <Label htmlFor="service-results-path">List path (optional)</Label>
+            <Input
+              id="service-results-path"
+              value={resultsPath}
+              onChange={(e) => setResultsPath(e.target.value)}
+              placeholder="auto-detect"
+            />
+            <p className="text-xs text-muted-foreground">
+              For paginated APIs, the field holding the array. Blank auto-detects <code className="readout">results</code>, <code className="readout">items</code>, <code className="readout">data</code>.
+            </p>
+          </div>
+
+          <div className="grid gap-2">
+            <Label>Auth type</Label>
+            <Select value={authType} onValueChange={(value) => { if (value != null) setAuthType(value as AuthType) }}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -322,10 +354,81 @@ export function ServiceFormDialog({
             </Select>
           </div>
 
+          {authType === "login" && (
+            <>
+              <div className="grid gap-2">
+                <Label htmlFor="auth-login-url">Login URL</Label>
+                <Input
+                  id="auth-login-url"
+                  type="url"
+                  value={loginUrl}
+                  onChange={(e) => setLoginUrl(e.target.value)}
+                  placeholder={isEditing ? "•••••••• (unchanged)" : "https://api.example.com/api/v1/auth/login"}
+                  required={!isEditing}
+                />
+                <p className="text-xs text-muted-foreground">
+                  onecrm posts the credentials here, then sends the returned token on every request.
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="auth-login-username">Email or username</Label>
+                  <Input
+                    id="auth-login-username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder={credentialPlaceholder}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="auth-login-password">Password</Label>
+                  <Input
+                    id="auth-login-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={credentialPlaceholder}
+                    autoComplete="new-password"
+                  />
+                </div>
+              </div>
+              <details className="rounded-md border border-border px-3 py-2">
+                <summary className="cursor-pointer text-sm text-muted-foreground">Advanced</summary>
+                <div className="grid gap-3 pt-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="auth-username-field">Username field name</Label>
+                    <Input
+                      id="auth-username-field"
+                      value={usernameField}
+                      onChange={(e) => setUsernameField(e.target.value)}
+                      placeholder="email"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      JSON field the login endpoint expects (e.g. <code className="readout">email</code>, <code className="readout">identifier</code>).
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="auth-token-path">Token path</Label>
+                    <Input
+                      id="auth-token-path"
+                      value={tokenPath}
+                      onChange={(e) => setTokenPath(e.target.value)}
+                      placeholder="auto-detect"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Where the token lives in the response. Blank auto-detects <code className="readout">access</code>, <code className="readout">access_token</code>, <code className="readout">accessToken</code>.
+                    </p>
+                  </div>
+                </div>
+              </details>
+            </>
+          )}
+
           {authType === "api-key" && (
             <>
               <div className="grid gap-2">
-                <Label htmlFor="auth-api-key">API Key</Label>
+                <Label htmlFor="auth-api-key">API key</Label>
                 <Input
                   id="auth-api-key"
                   type="password"
@@ -335,7 +438,7 @@ export function ServiceFormDialog({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="auth-header-name">Header Name</Label>
+                <Label htmlFor="auth-header-name">Header name</Label>
                 <Input
                   id="auth-header-name"
                   value={headerName}
@@ -383,16 +486,11 @@ export function ServiceFormDialog({
           )}
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={submitting}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={submitting}>
               Cancel
             </Button>
             <Button type="submit" disabled={submitting}>
-              {isEditing ? "Update" : "Create"}
+              {isEditing ? "Save changes" : "Create"}
             </Button>
           </DialogFooter>
         </form>

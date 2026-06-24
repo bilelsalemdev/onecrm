@@ -1,3 +1,4 @@
+import { formatDate } from '@/lib/utils'
 import type { ReviewableContact, ReviewStatus, Service } from '@onecrm/shared'
 
 const REVIEW_LAMP: Record<ReviewStatus, string> = {
@@ -34,7 +35,7 @@ export function RecentContacts({
               />
               <span className="readout hidden text-xs text-muted-foreground sm:inline">{svc?.name ?? c.serviceId}</span>
             </span>
-            <span className="readout ml-auto shrink-0 text-xs tabular-nums text-muted-foreground/70">{c.date}</span>
+            <span className="readout ml-auto shrink-0 text-xs tabular-nums text-muted-foreground/70">{formatDate(c.date)}</span>
           </div>
         )
       })}

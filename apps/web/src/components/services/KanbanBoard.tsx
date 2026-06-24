@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { updateReview } from '@/services/api'
+import { formatAmount, formatDate } from '@/lib/utils'
 import { CardDetailDialog } from './CardDetailDialog'
 import type { ReviewStatus, ReviewableContact, ReviewableOrder } from '@onecrm/shared'
 import { Package, GripVertical, Calendar } from 'lucide-react'
@@ -74,15 +75,17 @@ function KanbanCard({
         )}
 
         {/* Order: product + amount */}
-        {order && (
+        {order && (order.product || formatAmount(order.amount, order.currency)) && (
           <div className="flex items-center justify-between gap-2 rounded bg-muted/70 px-2 py-1.5 text-xs">
             <span className="flex min-w-0 items-center gap-1.5 text-muted-foreground">
               <Package className="h-3 w-3 shrink-0" />
-              <span className="truncate">{order.product}</span>
+              <span className="truncate">{order.product || '—'}</span>
             </span>
-            <span className="readout shrink-0 font-medium text-foreground tabular-nums">
-              {Number(order.amount).toFixed(0)} {order.currency}
-            </span>
+            {formatAmount(order.amount, order.currency) && (
+              <span className="readout shrink-0 font-medium text-foreground tabular-nums">
+                {formatAmount(order.amount, order.currency)}
+              </span>
+            )}
           </div>
         )}
 
@@ -116,7 +119,7 @@ function KanbanCard({
 
           <span className="readout ml-auto flex items-center gap-1 text-[10px] tabular-nums text-muted-foreground/60">
             <Calendar className="h-2.5 w-2.5" />
-            {item.date}
+            {formatDate(item.date)}
           </span>
         </div>
 

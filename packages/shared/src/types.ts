@@ -1,11 +1,24 @@
 // Auth
-export type AuthType = 'none' | 'api-key' | 'basic' | 'bearer'
+export type AuthType = 'none' | 'api-key' | 'basic' | 'bearer' | 'login'
 
 export type AuthConfig =
   | { type: 'none' }
   | { type: 'api-key'; apiKey: string; headerName: string }
   | { type: 'basic'; username: string; password: string }
   | { type: 'bearer'; token: string }
+  // Logs in with username/password to obtain a (JWT) token, then sends it as a
+  // header on each request. The token is cached and refreshed on a 401.
+  | {
+      type: 'login'
+      loginUrl: string
+      username: string
+      password: string
+      usernameField?: string // login body field for the username (default 'email')
+      passwordField?: string // login body field for the password (default 'password')
+      tokenPath?: string // dot-path to the token in the response (default: auto-detect)
+      header?: string // header to send the token in (default 'Authorization')
+      scheme?: string // token scheme prefix (default 'Bearer'; '' for none)
+    }
 
 // Field mapping: maps our field names to external API field names
 export type FieldMapping = Record<string, string>
@@ -20,6 +33,7 @@ export interface ServiceConfig {
   logo?: string
   endpoint: string
   ordersEndpoint?: string
+  resultsPath?: string // dot-path to the array in a wrapped response (default: auto-detect)
   contactsMapping?: FieldMapping
   ordersMapping?: FieldMapping
   auth: AuthConfig
@@ -35,6 +49,7 @@ export interface Service {
   logo?: string
   endpoint: string
   ordersEndpoint?: string
+  resultsPath?: string
   contactsMapping?: FieldMapping
   ordersMapping?: FieldMapping
   authType: AuthType
@@ -49,6 +64,7 @@ export interface ServiceFormData {
   logo?: string
   endpoint: string
   ordersEndpoint?: string
+  resultsPath?: string
   auth: AuthConfig
 }
 
@@ -119,6 +135,7 @@ export function stripCredentials(config: ServiceConfig): Service {
     logo: config.logo,
     endpoint: config.endpoint,
     ordersEndpoint: config.ordersEndpoint,
+    resultsPath: config.resultsPath,
     contactsMapping: config.contactsMapping,
     ordersMapping: config.ordersMapping,
     authType: config.auth.type,
