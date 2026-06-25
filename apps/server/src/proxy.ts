@@ -170,6 +170,7 @@ function applyMapping(records: unknown[], mapping: FieldMapping | undefined): un
 }
 
 export async function proxyContacts(service: ServiceConfig): Promise<unknown[]> {
+  if (!service.endpoint) return []
   const raw = await proxyRequest(service.endpoint, service)
   return applyMapping(raw, service.contactsMapping)
 }

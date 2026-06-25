@@ -16,7 +16,7 @@ interface ServiceCardProps {
 export function ServiceCard({ service, onEdit, onDelete }: ServiceCardProps) {
   const Icon = iconMap[service.icon] ?? Globe
   const navigate = useNavigate()
-  const host = service.endpoint.replace(/^https?:\/\//, '').split('/')[0]
+  const host = (service.endpoint ?? service.ordersEndpoint ?? '').replace(/^https?:\/\//, '').split('/')[0]
 
   return (
     <div

@@ -31,7 +31,7 @@ export interface ServiceConfig {
   icon: string
   color?: string
   logo?: string
-  endpoint: string
+  endpoint?: string
   ordersEndpoint?: string
   resultsPath?: string // dot-path to the array in a wrapped response (default: auto-detect)
   contactsMapping?: FieldMapping
@@ -47,7 +47,7 @@ export interface Service {
   icon: string
   color?: string
   logo?: string
-  endpoint: string
+  endpoint?: string
   ordersEndpoint?: string
   resultsPath?: string
   contactsMapping?: FieldMapping
@@ -62,7 +62,7 @@ export interface ServiceFormData {
   icon: string
   color?: string
   logo?: string
-  endpoint: string
+  endpoint?: string
   ordersEndpoint?: string
   resultsPath?: string
   auth: AuthConfig

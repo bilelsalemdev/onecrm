@@ -85,7 +85,7 @@ export function ServiceFormDialog({
       setDescription(editingService.description)
       setIcon(editingService.icon)
       setColor(editingService.color ?? "")
-      setEndpoint(editingService.endpoint)
+      setEndpoint(editingService.endpoint ?? "")
       setOrdersEndpoint(editingService.ordersEndpoint ?? "")
       setResultsPath(editingService.resultsPath ?? "")
       setAuthType(editingService.authType)
@@ -156,8 +156,8 @@ export function ServiceFormDialog({
         description,
         icon,
         color: color || undefined,
-        endpoint,
-        ordersEndpoint: ordersEndpoint || undefined,
+        endpoint: endpoint.trim() || undefined,
+        ordersEndpoint: ordersEndpoint.trim() || undefined,
         resultsPath: resultsPath.trim() || undefined,
         auth: buildAuthConfig(),
       }
@@ -303,15 +303,17 @@ export function ServiceFormDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="service-endpoint">Contacts endpoint URL</Label>
+            <Label htmlFor="service-endpoint">Contact-us submissions endpoint (optional)</Label>
             <Input
               id="service-endpoint"
               type="url"
               value={endpoint}
               onChange={(e) => setEndpoint(e.target.value)}
-              placeholder="https://api.example.com/api/v1/customers"
-              required
+              placeholder="https://api.example.com/api/v1/contact-us"
             />
+            <p className="text-xs text-muted-foreground">
+              Your &ldquo;Contact&nbsp;Us&rdquo; form submissions. Leave blank if this app has no contact-us form.
+            </p>
           </div>
 
           <div className="grid gap-2">

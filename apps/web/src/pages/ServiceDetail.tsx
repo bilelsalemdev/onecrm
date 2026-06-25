@@ -41,12 +41,13 @@ export function ServiceDetail() {
   }
 
   const Icon = iconMap[service.icon] ?? Globe
-  const host = service.endpoint.replace(/^https?:\/\//, '').split('/')[0]
+  const host = (service.endpoint ?? service.ordersEndpoint ?? '').replace(/^https?:\/\//, '').split('/')[0]
 
   const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }>; count: number }[] = [
-    { id: 'contacts', label: 'Contacts', icon: Mail, count: contacts.length },
-    { id: 'orders', label: 'Orders', icon: ShoppingCart, count: orders.length },
+    ...(service.endpoint ? [{ id: 'contacts' as Tab, label: 'Contacts', icon: Mail, count: contacts.length }] : []),
+    ...(service.ordersEndpoint ? [{ id: 'orders' as Tab, label: 'Orders', icon: ShoppingCart, count: orders.length }] : []),
   ]
+  const currentTab: Tab = tabs.some((t) => t.id === activeTab) ? activeTab : (tabs[0]?.id ?? 'contacts')
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -85,7 +86,7 @@ export function ServiceDetail() {
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-border">
         {tabs.map((tab) => {
-          const active = activeTab === tab.id
+          const active = currentTab === tab.id
           return (
             <button
               key={tab.id}
@@ -106,10 +107,16 @@ export function ServiceDetail() {
         })}
       </div>
 
-      {activeTab === 'contacts' && (
+      {tabs.length === 0 && (
+        <div className="grid-etch flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center">
+          <p className="font-heading text-sm font-semibold">No data sources</p>
+          <p className="mt-1 text-xs text-muted-foreground">Add a contact-us or orders endpoint for this service.</p>
+        </div>
+      )}
+      {currentTab === 'contacts' && service.endpoint && (
         <KanbanBoard items={contacts} serviceId={service.id} type="contacts" onUpdated={loadData} />
       )}
-      {activeTab === 'orders' && (
+      {currentTab === 'orders' && service.ordersEndpoint && (
         <KanbanBoard items={orders} serviceId={service.id} type="orders" onUpdated={loadData} />
       )}
 
@@ -117,8 +124,8 @@ export function ServiceDetail() {
         open={mappingOpen}
         onOpenChange={setMappingOpen}
         serviceId={service.id}
-        type={activeTab}
-        existingMapping={activeTab === 'contacts' ? service.contactsMapping : service.ordersMapping}
+        type={currentTab}
+        existingMapping={currentTab === 'contacts' ? service.contactsMapping : service.ordersMapping}
         onSaved={loadData}
       />
     </div>
